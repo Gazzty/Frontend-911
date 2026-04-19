@@ -74,6 +74,9 @@ const LoginPage = () => {
         navigate('/dashboard');
       }, 500);
     } catch (error) {
+      setEmailError('Correo o contraseña incorrectos');
+      setPasswordError('Correo o contraseña incorrectos');
+
       toaster.create({
         title: 'Error',
         description: 'Credenciales inválidas',
@@ -147,7 +150,7 @@ const LoginPage = () => {
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
-                      if (emailError) validateEmail(e.target.value);
+                      if (emailError) setEmailError('');
                     }}
                     onBlur={() => validateEmail(email)}
                     onKeyDown={handleKeyPress}
@@ -177,7 +180,7 @@ const LoginPage = () => {
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
-                        if (passwordError) validatePassword(e.target.value);
+                        if (passwordError) setPasswordError('');
                       }}
                       onBlur={() => validatePassword(password)}
                       onKeyDown={handleKeyPress}
