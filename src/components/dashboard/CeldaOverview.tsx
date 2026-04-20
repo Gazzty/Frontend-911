@@ -5,11 +5,13 @@ import CeldaCard from './CeldaCard';
 
 const MotionBox = motion.create(Box);
 
-interface CeldasListProps {
+interface CeldaOverviewProps {
   celdas: Celda[];
 }
 
-const CeldasList = ({ celdas }: CeldasListProps) => {
+const CeldaOverview = ({ celdas }: CeldaOverviewProps) => {
+  const celdasActivas = celdas.filter((c) => c.activa);
+
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
@@ -25,17 +27,23 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
         borderColor="gray.200"
       >
         <Text fontSize="lg" fontWeight="600" mb={4}>
-          Estado de las celdas
+          Resumen de Celdas Activas ({celdasActivas.length})
         </Text>
 
         <VStack gap={2} align="stretch">
-          {celdas.map((celda, index) => (
-            <CeldaCard key={celda.id} celda={celda} index={index} />
-          ))}
+          {celdasActivas.length > 0 ? (
+            celdasActivas.map((celda, index) => (
+              <CeldaCard key={celda.id} celda={celda} index={index} />
+            ))
+          ) : (
+            <Text color="gray.500" textAlign="center" py={4}>
+              No hay celdas activas actualmente
+            </Text>
+          )}
         </VStack>
       </Box>
     </MotionBox>
   );
 };
 
-export default CeldasList;
+export default CeldaOverview;

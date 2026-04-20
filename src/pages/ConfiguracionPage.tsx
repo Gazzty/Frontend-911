@@ -6,6 +6,7 @@ import Navbar from '../components/layout/Navbar';
 import UmbralesConfig from '../components/config/UmbralesConfig';
 import NotificacionesConfig from '../components/config/NotificacionesConfig';
 import CeldasConfig from '../components/config/CeldasConfig';
+import ConfigTabButton from '../components/config/ConfigTabButton';
 import { dataService } from '../services/dataService';
 import type { Config, Celda } from '../types';
 
@@ -175,23 +176,13 @@ const ConfiguracionPage = () => {
               gap={0}
             >
               {tabs.map((tab, index) => (
-                <Box
+                <ConfigTabButton
                   key={index}
-                  px={4}
-                  py={2}
-                  bg={activeTab === index ? 'gray.100' : 'transparent'}
-                  fontWeight={activeTab === index ? '600' : '400'}
-                  borderRadius="md"
-                  cursor="pointer"
+                  icon={tab.icon}
+                  label={tab.label}
+                  isActive={activeTab === index}
                   onClick={() => setActiveTab(index)}
-                  transition="all 0.3s ease"
-                  display="flex"
-                  alignItems="center"
-                  gap={2}
-                >
-                  <tab.icon />
-                  <Text fontSize="sm">{tab.label}</Text>
-                </Box>
+                />
               ))}
             </Stack>
 

@@ -7,6 +7,7 @@ import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
+import CeldaOverview from '../components/dashboard/CeldaOverview';
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import { dataService } from '../services/dataService';
 import type { DashboardStats, TemperatureReading, Celda } from '../types';
@@ -341,7 +342,10 @@ const DashboardPage = () => {
               </GridItem>
               <GridItem>
                 {celdas.length > 0 ? (
-                  <CeldasList celdas={celdas} />
+                  <VStack gap={4} align="stretch">
+                    <CeldaOverview celdas={celdas} />
+                    <CeldasList celdas={celdas} />
+                  </VStack>
                 ) : (
                   <Box
                     bg="white"
