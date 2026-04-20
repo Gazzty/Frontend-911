@@ -15,7 +15,7 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      h="100%"
+      h="450px"
     >
       <Box
         bg="white"
@@ -25,6 +25,7 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
         borderWidth="1px"
         borderColor="gray.200"
         h="100%"
+        minH={0}
         display="flex"
         flexDirection="column"
       >
