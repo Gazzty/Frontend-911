@@ -122,6 +122,7 @@ const Navbar = () => {
                   bg: '#E63E00',
                 }}
                 whiteSpace="nowrap"
+                padding={2}
               >
                 <FaSignOutAlt />
                 <Text ml={2}>Salir</Text>

@@ -41,7 +41,7 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
   const filterData = () => {
     const now = new Date();
     let daysToShow = 7;
-    
+
     switch (timeRange) {
       case 'day':
         daysToShow = 1;
@@ -56,7 +56,7 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
         daysToShow = 365;
         break;
     }
-    
+
     const cutoffDate = new Date(now.getTime() - daysToShow * 24 * 60 * 60 * 1000);
     const filtered = data.filter(d => new Date(d.timestamp) >= cutoffDate);
     return downsample(filtered, MAX_CHART_POINTS);
@@ -76,6 +76,7 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
+      h="450px"
     >
       <Box
         bg="white"
@@ -84,6 +85,9 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
         boxShadow="sm"
         borderWidth="1px"
         borderColor="gray.200"
+        h="100%"
+        display="flex"
+        flexDirection="column"
       >
         <HStack justify="space-between" mb={6}>
           <Text fontSize="lg" fontWeight="600">
@@ -109,7 +113,8 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
           </HStack>
         </HStack>
 
-        <ResponsiveContainer width="100%" height={300}>
+        <Box flex={1} minH={0}>
+          <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filterData()}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E8E8E8" />
             <XAxis
@@ -145,7 +150,8 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
               activeDot={{ r: 5 }}
             />
           </LineChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </Box>
       </Box>
     </MotionBox>
   );

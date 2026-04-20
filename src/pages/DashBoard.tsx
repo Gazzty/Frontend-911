@@ -31,7 +31,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     loadData();
-    
+
     const interval = setInterval(() => {
       refreshData();
     }, 30000);
@@ -42,7 +42,7 @@ const DashboardPage = () => {
   const loadData = async () => {
     setIsLoading(true);
     setHasError(false);
-    
+
     try {
       const [statsData, tempData, celdasData] = await Promise.all([
         dataService.getDashboardStats(),
@@ -72,7 +72,7 @@ const DashboardPage = () => {
     } catch (error) {
       console.error('Error cargando datos:', error);
       setHasError(true);
-      
+
       toaster.create({
         title: 'Error al cargar datos',
         description: error instanceof Error ? error.message : 'No se pudieron cargar los datos del dashboard',
@@ -85,7 +85,7 @@ const DashboardPage = () => {
 
   const refreshData = async () => {
     setIsRefreshing(true);
-    
+
     try {
       const [statsData, tempData, celdasData] = await Promise.all([
         dataService.getDashboardStats(),
@@ -98,7 +98,7 @@ const DashboardPage = () => {
       setCeldas(celdasData);
       setLastUpdate(new Date());
       setAlertDismissed(false);
-      
+
       toaster.create({
         title: 'Actualizado',
         description: 'Datos actualizados correctamente',
@@ -120,12 +120,12 @@ const DashboardPage = () => {
     if (!lastUpdate) return '';
     const now = new Date();
     const diff = Math.floor((now.getTime() - lastUpdate.getTime()) / 1000);
-    
+
     if (diff < 60) return 'Hace menos de 1 minuto';
     if (diff < 3600) return `Hace ${Math.floor(diff / 60)} minutos`;
-    return lastUpdate.toLocaleTimeString('es-AR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return lastUpdate.toLocaleTimeString('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -342,7 +342,7 @@ const DashboardPage = () => {
                   </Box>
                 )}
               </GridItem>
-              <GridItem h="100%">
+              <GridItem minH={0} h="100%">
                 {celdas.length > 0 ? (
                   <CeldasList celdas={celdas} />
                 ) : (
@@ -354,6 +354,7 @@ const DashboardPage = () => {
                     borderWidth="1px"
                     borderColor="gray.200"
                     textAlign="center"
+                    h="100%"
                   >
                     <Text color="gray.500">No hay celdas configuradas</Text>
                   </Box>
