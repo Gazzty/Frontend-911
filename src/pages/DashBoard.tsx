@@ -324,8 +324,8 @@ const DashboardPage = () => {
           </Grid>
 
           <VStack gap={6} align="stretch">
-            <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-              <GridItem>
+            <Grid templateColumns="repeat(2, 1fr)" gap={6} alignItems="stretch">
+              <GridItem h="100%">
                 {temperatureData.length > 0 ? (
                   <TemperatureChart data={temperatureData} />
                 ) : (
@@ -342,7 +342,7 @@ const DashboardPage = () => {
                   </Box>
                 )}
               </GridItem>
-              <GridItem>
+              <GridItem h="100%">
                 {celdas.length > 0 ? (
                   <CeldasList celdas={celdas} />
                 ) : (
