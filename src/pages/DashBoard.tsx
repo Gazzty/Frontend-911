@@ -7,6 +7,7 @@ import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
+
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import { dataService } from '../services/dataService';
 import type { DashboardStats, TemperatureReading, Celda } from '../types';
@@ -219,21 +220,23 @@ const DashboardPage = () => {
                   </Text>
                 )}
               </Box>
-              <MotionBox
-                whileHover={{ scale: 1.05, rotate: 180 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={refreshData}
+                loading={isRefreshing}
+                disabled={isRefreshing}
               >
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={refreshData}
-                  loading={isRefreshing}
-                  disabled={isRefreshing}
+                <Box
+                  as="span"
+                  display="inline-flex"
+                  transition="transform 0.3s ease"
+                  _groupHover={{ transform: 'rotate(180deg)' }}
                 >
                   <FaSync />
-                  <Text ml={2}>Actualizar</Text>
-                </Button>
-              </MotionBox>
+                </Box>
+                <Text ml={2}>Actualizar</Text>
+              </Button>
             </Flex>
           </Box>
 
@@ -321,8 +324,8 @@ const DashboardPage = () => {
           </Grid>
 
           <VStack gap={6} align="stretch">
-            <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-              <GridItem>
+            <Grid templateColumns="repeat(2, 1fr)" gap={6} alignItems="stretch">
+              <GridItem h="100%">
                 {temperatureData.length > 0 ? (
                   <TemperatureChart data={temperatureData} />
                 ) : (
@@ -339,7 +342,7 @@ const DashboardPage = () => {
                   </Box>
                 )}
               </GridItem>
-              <GridItem>
+              <GridItem h="100%">
                 {celdas.length > 0 ? (
                   <CeldasList celdas={celdas} />
                 ) : (

@@ -12,12 +12,30 @@ interface TemperatureChartProps {
 
 type TimeRange = 'year' | 'month' | 'week' | 'day';
 
+const MAX_CHART_POINTS = 60;
+
+const downsample = (data: TemperatureReading[], maxPoints: number): TemperatureReading[] => {
+  if (data.length <= maxPoints) return data;
+  const step = Math.ceil(data.length / maxPoints);
+  return data.filter((_, i) => i % step === 0);
+};
+
 const TemperatureChart = ({ data }: TemperatureChartProps) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
 
   const formatXAxis = (timestamp: string) => {
     const date = new Date(timestamp);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+    switch (timeRange) {
+      case 'day':
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+      case 'week':
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      case 'month':
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      case 'year':
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        return months[date.getMonth()];
+    }
   };
 
   const filterData = () => {
@@ -40,7 +58,8 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
     }
     
     const cutoffDate = new Date(now.getTime() - daysToShow * 24 * 60 * 60 * 1000);
-    return data.filter(d => new Date(d.timestamp) >= cutoffDate);
+    const filtered = data.filter(d => new Date(d.timestamp) >= cutoffDate);
+    return downsample(filtered, MAX_CHART_POINTS);
   };
 
   const timeRangeButtons: { label: string; value: TimeRange }[] = [
@@ -49,6 +68,8 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
     { label: 'Semana', value: 'week' },
     { label: 'Día', value: 'day' },
   ];
+
+  const showDots = timeRange === 'day' || timeRange === 'week';
 
   return (
     <MotionBox
@@ -80,13 +101,7 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
                 _hover={{
                   bg: timeRange === btn.value ? '#E63E00' : 'gray.100',
                 }}
-                borderRadius={
-                  btn.value === 'year'
-                    ? 'md 0 0 md'
-                    : btn.value === 'day'
-                    ? '0 md md 0'
-                    : '0'
-                }
+                borderRadius="md"
               >
                 {btn.label}
               </Button>
@@ -116,15 +131,18 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
                 fontSize: '12px',
               }}
               formatter={(value: any) => [`${value}°C`, 'Temperatura']}
-              labelFormatter={(label: any) => formatXAxis(label)}
+              labelFormatter={(label: any) => {
+                const date = new Date(label);
+                return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+              }}
             />
             <Line
               type="monotone"
               dataKey="temperatura"
               stroke="#FF4500"
-              strokeWidth={3}
-              dot={{ fill: '#FF4500', r: 4 }}
-              activeDot={{ r: 6 }}
+              strokeWidth={2}
+              dot={showDots ? { fill: '#FF4500', r: 3 } : false}
+              activeDot={{ r: 5 }}
             />
           </LineChart>
         </ResponsiveContainer>
