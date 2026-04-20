@@ -7,7 +7,7 @@ import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
-import CeldaOverview from '../components/dashboard/CeldaOverview';
+
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import { dataService } from '../services/dataService';
 import type { DashboardStats, TemperatureReading, Celda } from '../types';
@@ -220,21 +220,23 @@ const DashboardPage = () => {
                   </Text>
                 )}
               </Box>
-              <MotionBox
-                whileHover={{ scale: 1.05, rotate: 180 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={refreshData}
+                loading={isRefreshing}
+                disabled={isRefreshing}
               >
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={refreshData}
-                  loading={isRefreshing}
-                  disabled={isRefreshing}
+                <Box
+                  as="span"
+                  display="inline-flex"
+                  transition="transform 0.3s ease"
+                  _groupHover={{ transform: 'rotate(180deg)' }}
                 >
                   <FaSync />
-                  <Text ml={2}>Actualizar</Text>
-                </Button>
-              </MotionBox>
+                </Box>
+                <Text ml={2}>Actualizar</Text>
+              </Button>
             </Flex>
           </Box>
 
@@ -342,10 +344,7 @@ const DashboardPage = () => {
               </GridItem>
               <GridItem>
                 {celdas.length > 0 ? (
-                  <VStack gap={4} align="stretch">
-                    <CeldaOverview celdas={celdas} />
-                    <CeldasList celdas={celdas} />
-                  </VStack>
+                  <CeldasList celdas={celdas} />
                 ) : (
                   <Box
                     bg="white"

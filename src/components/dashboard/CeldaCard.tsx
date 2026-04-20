@@ -52,6 +52,11 @@ const CeldaCard = ({ celda, index }: CeldaCardProps) => {
         {isExpanded && (
           <Box bg="white" p={4} mt={1} borderRadius="md" borderWidth="1px" borderColor="gray.100">
             <VStack align="stretch" gap={2}>
+              <HStack justify="space-between" fontSize="xs" color="gray.500" fontWeight="700" textTransform="uppercase" letterSpacing="wide" pb={1} borderBottom="1px solid" borderColor="gray.200">
+                <Text>ID Sensor</Text>
+                <Text>Temperatura</Text>
+                <Text>Incendio</Text>
+              </HStack>
               {celda.sensores.map((sensor) => (
                 <HStack key={sensor.id} justify="space-between" fontSize="sm">
                   <Text>Sensor {sensor.id}</Text>
