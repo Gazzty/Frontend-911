@@ -9,22 +9,23 @@ const toaster = createToaster({
   duration: 3000,
 });
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleLogin = async (data: AuthFormData) => {
+  const handleRegister = async (data: AuthFormData) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const user = await authService.login(data.email, data.password);
+      const user = await authService.register(data.email, data.password, data.name || '');
+      // Auto-login after registration
       authService.saveUser(user);
       
       toaster.create({
-        title: 'Bienvenido',
-        description: 'Inicio de sesión exitoso',
+        title: 'Registro exitoso',
+        description: 'Tu cuenta ha sido creada correctamente',
         type: 'success',
         duration: 2000,
       });
@@ -33,10 +34,10 @@ const LoginPage = () => {
         navigate('/dashboard');
       }, 500);
     } catch (err: any) {
-      setError('Correo o contraseña incorrectos');
+      setError(err.message || 'Error al registrar el usuario');
       toaster.create({
         title: 'Error',
-        description: 'Credenciales inválidas',
+        description: err.message || 'Error al registrar el usuario',
         type: 'error',
       });
     } finally {
@@ -46,13 +47,13 @@ const LoginPage = () => {
 
   return (
     <AuthForm
-      type="login"
-      onSubmit={handleLogin}
+      type="register"
+      onSubmit={handleRegister}
       isLoading={isLoading}
       error={error}
-      onNavigate={() => navigate('/register')}
+      onNavigate={() => navigate('/login')}
     />
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

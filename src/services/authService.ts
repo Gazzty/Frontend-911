@@ -1,7 +1,6 @@
 import type { User } from '../types';
 
-// Credenciales mock
-const MOCK_USERS = [
+const INITIAL_MOCK_USERS = [
   {
     email: 'admin@incendios.com',
     password: 'admin123',
@@ -14,13 +13,22 @@ const MOCK_USERS = [
   },
 ];
 
+const getMockUsers = () => {
+  const stored = localStorage.getItem('mock_users');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  localStorage.setItem('mock_users', JSON.stringify(INITIAL_MOCK_USERS));
+  return INITIAL_MOCK_USERS;
+};
+
 export const authService = {
   login: async (email: string, password: string): Promise<User> => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
-    // Buscar usuario en el mock
-    const user = MOCK_USERS.find(
-      (u) => u.email === email && u.password === password
+    const users = getMockUsers();
+    const user = users.find(
+      (u: any) => u.email === email && u.password === password
     );
     
     if (user) {
@@ -31,6 +39,25 @@ export const authService = {
     }
     
     throw new Error('Credenciales inválidas');
+  },
+
+  register: async (email: string, password: string, name: string): Promise<User> => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    const users = getMockUsers();
+    
+    if (users.some((u: any) => u.email === email)) {
+      throw new Error('El correo electrónico ya está registrado');
+    }
+    
+    const newUser = { email, password, name };
+    users.push(newUser);
+    localStorage.setItem('mock_users', JSON.stringify(users));
+    
+    return {
+      email: newUser.email,
+      name: newUser.name,
+    };
   },
 
   logout: async (): Promise<void> => {
