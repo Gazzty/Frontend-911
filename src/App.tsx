@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashBoard';
 import MapaPage from './pages/MapaPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import { authService } from './services/authService';
+import { SensorDataProvider } from './context/SensorDataContext';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = authService.getCurrentUser();
@@ -29,7 +30,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <SensorDataProvider>
+                  <DashboardPage />
+                </SensorDataProvider>
               </ProtectedRoute>
             }
           />
@@ -37,7 +40,9 @@ function App() {
             path="/mapa"
             element={
               <ProtectedRoute>
-                <MapaPage />
+                <SensorDataProvider>
+                  <MapaPage />
+                </SensorDataProvider>
               </ProtectedRoute>
             }
           />

@@ -35,6 +35,13 @@ export interface TemperatureReading {
   temperatura: number;
 }
 
+export interface Medicion {
+  id: number;
+  sensorId: number;
+  date: string;
+  value: string;
+}
+
 export interface Config {
   umbrales: {
     temperatura: number;
