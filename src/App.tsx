@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashBoard';
 import MapaPage from './pages/MapaPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import { authService } from './services/authService';
+import { SensorDataProvider } from './context/SensorDataContext';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = authService.getCurrentUser();
@@ -22,35 +23,37 @@ function App() {
   return (
     <ChakraProvider value={system}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/mapa"
-            element={
-              <ProtectedRoute>
-                <MapaPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/configuracion"
-            element={
-              <ProtectedRoute>
-                <ConfiguracionPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <SensorDataProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mapa"
+              element={
+                <ProtectedRoute>
+                  <MapaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/configuracion"
+              element={
+                <ProtectedRoute>
+                  <ConfiguracionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </SensorDataProvider>
       </BrowserRouter>
     </ChakraProvider>
   );

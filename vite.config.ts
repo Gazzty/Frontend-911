@@ -19,4 +19,12 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  server: {
+    proxy: {
+      '/Cell': { target: 'https://fired.runasp.net', changeOrigin: true },
+      '/Config': { target: 'https://fired.runasp.net', changeOrigin: true },
+      '/Fired': { target: 'https://fired.runasp.net', changeOrigin: true },
+    },
+  },
 })

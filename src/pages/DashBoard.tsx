@@ -1,8 +1,8 @@
-import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton } from '@chakra-ui/react';
+import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton, HStack } from '@chakra-ui/react';
 import { createToaster } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FaSync, FaFire, FaTimes } from 'react-icons/fa';
+import { FaSync, FaFire, FaTimes, FaWifi } from 'react-icons/fa';
 import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
@@ -10,6 +10,7 @@ import CeldasList from '../components/dashboard/CeldasList';
 
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import { dataService } from '../services/dataService';
+import { useSensorData } from '../context/SensorDataContext';
 import type { DashboardStats, TemperatureReading, Celda } from '../types';
 
 const MotionBox = motion.create(Box);
@@ -19,24 +20,61 @@ const toaster = createToaster({
   duration: 3000,
 });
 
+const CONNECTION_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  conectado: { label: 'Conectado', color: '#51CF66' },
+  conectando: { label: 'Conectando...', color: '#FFD43B' },
+  desconectado: { label: 'Desconectado', color: '#868E96' },
+  error: { label: 'Error de conexión', color: '#FF6B6B' },
+};
+
 const DashboardPage = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const { celdas, connectionStatus, lastUpdate: wsLastUpdate } = useSensorData();
   const [temperatureData, setTemperatureData] = useState<TemperatureReading[]>([]);
-  const [celdas, setCeldas] = useState<Celda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
 
+  // Computar stats a partir de las celdas del WebSocket
+  const stats = useMemo<DashboardStats>(() => {
+    const celdasActivas = celdas.filter((c) => c.activa).length;
+    const posiblesIncendios = celdas.filter((c) =>
+      c.sensores.some((s) => s.enFuego)
+    ).length;
+
+    let totalSensoresAlerta = 0;
+    let totalTemp = 0;
+    let totalSensores = 0;
+
+    celdas.forEach((celda) => {
+      celda.sensores.forEach((sensor) => {
+        if (sensor.temperatura > 50) totalSensoresAlerta++;
+        totalTemp += sensor.temperatura;
+        totalSensores++;
+      });
+    });
+
+    return {
+      celdasActivas,
+      celdasTotales: celdas.length,
+      posiblesIncendios,
+      sensoresEnAlerta: totalSensoresAlerta,
+      temperaturaPromedio: totalSensores > 0 ? Math.round(totalTemp / totalSensores) : 0,
+      umbralTemperatura: 50,
+    };
+  }, [celdas]);
+
+  // Actualizar lastUpdate cuando llegan datos del WebSocket
+  useEffect(() => {
+    if (wsLastUpdate) {
+      setLastUpdate(wsLastUpdate);
+      setAlertDismissed(false);
+    }
+  }, [wsLastUpdate]);
+
   useEffect(() => {
     loadData();
-
-    const interval = setInterval(() => {
-      refreshData();
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
@@ -44,30 +82,17 @@ const DashboardPage = () => {
     setHasError(false);
 
     try {
-      const [statsData, tempData, celdasData] = await Promise.all([
-        dataService.getDashboardStats(),
-        dataService.getTemperatureHistory(),
-        dataService.getCeldas(),
-      ]);
-
-      if (!statsData || typeof statsData.celdasActivas !== 'number') {
-        throw new Error('Datos de estadísticas inválidos');
-      }
+      // If celdas are still loading or empty, wait or fetch them first
+      // But we have `celdas` from `useSensorData()`. It might be empty initially.
+      const tempData = await dataService.getTemperatureHistory(celdas.length > 0 ? celdas : await dataService.getCeldas());
 
       if (!Array.isArray(tempData) || tempData.length === 0) {
         throw new Error('Datos de temperatura inválidos');
       }
 
-      if (!Array.isArray(celdasData)) {
-        throw new Error('Datos de celdas inválidos');
-      }
-
-      setStats(statsData);
       setTemperatureData(tempData);
-      setCeldas(celdasData);
       setLastUpdate(new Date());
       setHasError(false);
-      setAlertDismissed(false);
 
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -87,15 +112,9 @@ const DashboardPage = () => {
     setIsRefreshing(true);
 
     try {
-      const [statsData, tempData, celdasData] = await Promise.all([
-        dataService.getDashboardStats(),
-        dataService.getTemperatureHistory(),
-        dataService.getCeldas(),
-      ]);
+      const tempData = await dataService.getTemperatureHistory(celdas);
 
-      setStats(statsData);
       setTemperatureData(tempData);
-      setCeldas(celdasData);
       setLastUpdate(new Date());
       setAlertDismissed(false);
 
@@ -129,7 +148,7 @@ const DashboardPage = () => {
     });
   };
 
-  if (isLoading && !stats) {
+  if (isLoading && temperatureData.length === 0) {
     return (
       <>
         <Navbar />
@@ -163,7 +182,7 @@ const DashboardPage = () => {
     );
   }
 
-  if (hasError && !stats) {
+  if (hasError && temperatureData.length === 0) {
     return (
       <>
         <Navbar />
@@ -196,10 +215,6 @@ const DashboardPage = () => {
     );
   }
 
-  if (!stats) {
-    return null;
-  }
-
   return (
     <>
       <Navbar />
@@ -214,11 +229,24 @@ const DashboardPage = () => {
                 <Text fontSize="sm" color="gray.500">
                   Monitoreo en tiempo real del sistema de detección de incendios
                 </Text>
-                {lastUpdate && (
-                  <Text fontSize="xs" color="gray.400" mt={1}>
-                    Última actualización: {formatLastUpdate()}
-                  </Text>
-                )}
+                <HStack gap={2} mt={1}>
+                  {lastUpdate && (
+                    <Text fontSize="xs" color="gray.400">
+                      Última actualización: {formatLastUpdate()}
+                    </Text>
+                  )}
+                  <HStack gap={1}>
+                    <Box
+                      w={2}
+                      h={2}
+                      borderRadius="full"
+                      bg={CONNECTION_STATUS_LABELS[connectionStatus]?.color || '#868E96'}
+                    />
+                    <Text fontSize="xs" color="gray.400">
+                      {CONNECTION_STATUS_LABELS[connectionStatus]?.label || 'Desconocido'}
+                    </Text>
+                  </HStack>
+                </HStack>
               </Box>
               <Button
                 size="sm"
@@ -327,7 +355,7 @@ const DashboardPage = () => {
             <Grid templateColumns="repeat(2, 1fr)" gap={6} alignItems="stretch">
               <GridItem h="100%">
                 {temperatureData.length > 0 ? (
-                  <TemperatureChart data={temperatureData} />
+                  <TemperatureChart data={temperatureData} celdas={celdas} />
                 ) : (
                   <Box
                     bg="white"

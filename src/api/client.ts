@@ -1,4 +1,4 @@
-export const BASE_URL = "https://fired.runasp.net";
+export const BASE_URL = "";
 
 export const request = async <T>(
   endpoint: string,

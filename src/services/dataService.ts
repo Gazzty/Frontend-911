@@ -107,7 +107,7 @@ const generateMockCeldas = (): Celda[] => {
   ];
 };
 
-const generateTemperatureData = (): TemperatureReading[] => {
+const generateTemperatureData = (celdas: Celda[]): TemperatureReading[] => {
   const data: TemperatureReading[] = [];
   const now = new Date();
 
@@ -123,15 +123,16 @@ const generateTemperatureData = (): TemperatureReading[] => {
     const hourOfDay = date.getHours();
     const dailyVariation = 5 * Math.sin((hourOfDay / 24) * 2 * Math.PI - Math.PI / 2);
 
-    // Random noise
-    const noise = (Math.random() - 0.5) * 8;
+    const reading: TemperatureReading = { timestamp: date.toISOString() };
 
-    const temp = seasonalBase + dailyVariation + noise;
-
-    data.push({
-      timestamp: date.toISOString(),
-      temperatura: Math.round(Math.max(5, Math.min(65, temp))),
+    celdas.forEach((celda, index) => {
+      // Random noise slightly different per cell
+      const noise = (Math.random() - 0.5) * 8 + (index % 5);
+      const temp = seasonalBase + dailyVariation + noise;
+      reading[`celda_${celda.id}`] = Math.round(Math.max(5, Math.min(65, temp)));
     });
+
+    data.push(reading);
   }
 
   return data;
@@ -174,9 +175,9 @@ export const dataService = {
     };
   },
 
-  getTemperatureHistory: async (): Promise<TemperatureReading[]> => {
+  getTemperatureHistory: async (celdas: Celda[]): Promise<TemperatureReading[]> => {
     await new Promise((resolve) => setTimeout(resolve, 400));
-    return generateTemperatureData();
+    return generateTemperatureData(celdas);
   },
 
   getConfig: async (): Promise<Config> => {
@@ -184,7 +185,7 @@ export const dataService = {
     return {
       umbrales: {
         temperatura: 50,
-        intervaloMedicion: 600,
+        intervaloMedicion: 10,
       },
       notificaciones: {
         email: true,
