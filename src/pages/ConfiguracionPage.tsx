@@ -9,7 +9,9 @@ import CeldasConfig from '../components/config/CeldasConfig';
 import ConfigTabButton from '../components/config/ConfigTabButton';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
-import type { Config, Celda } from '../types';
+import { createCell, deleteCell } from '../api/cellApi';
+import type { CreateCellDto } from '../api/cellApi';
+import type { Config } from '../types';
 
 const toaster = createToaster({
   placement: 'top',
@@ -17,9 +19,11 @@ const toaster = createToaster({
 });
 
 const ConfiguracionPage = () => {
-  const { intervaloMedicion, setIntervaloMedicion, celdas: celdasContext } = useSensorData();
+  const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, historialMediciones } = useSensorData();
+
+  const sensoresDisponibles = [...new Set(historialMediciones.map((m) => m.sensorId))]
+    .sort((a, b) => a - b);
   const [config, setConfig] = useState<Config | null>(null);
-  const [celdas, setCeldas] = useState<Celda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -30,15 +34,9 @@ const ConfiguracionPage = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [configData, celdasData] = await Promise.all([
-        dataService.getConfig(),
-        dataService.getCeldas(),
-      ]);
-
-      // Usar el intervalo del context (que persiste entre navegaciones)
+      const configData = await dataService.getConfig();
       configData.umbrales.intervaloMedicion = intervaloMedicion;
       setConfig(configData);
-      setCeldas(celdasData);
     } catch (error) {
       toaster.create({
         title: 'Error',
@@ -115,8 +113,8 @@ const ConfiguracionPage = () => {
 
   const handleDeleteCelda = async (id: number) => {
     try {
-      await dataService.deleteCelda(id);
-      setCeldas(celdas.filter((c) => c.id !== id));
+      await deleteCell(id);
+      await refreshCeldas();
     } catch (error) {
       toaster.create({
         title: 'Error',
@@ -126,16 +124,17 @@ const ConfiguracionPage = () => {
     }
   };
 
-  const handleCreateCelda = async (nombre: string) => {
+  const handleCreateCelda = async (data: CreateCellDto) => {
     try {
-      const newCelda = await dataService.createCelda({ nombre });
-      setCeldas([...celdas, newCelda]);
+      await createCell(data);
+      await refreshCeldas();
     } catch (error) {
       toaster.create({
         title: 'Error',
         description: 'No se pudo crear la celda',
         type: 'error',
       });
+      throw error;
     }
   };
 
@@ -215,6 +214,7 @@ const ConfiguracionPage = () => {
                   celdas={celdas}
                   onDelete={handleDeleteCelda}
                   onCreate={handleCreateCelda}
+                  sensoresDisponibles={sensoresDisponibles}
                 />
               )}
             </Box>

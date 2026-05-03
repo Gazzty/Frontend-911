@@ -32,7 +32,7 @@ export interface DashboardStats {
 
 export interface TemperatureReading {
   timestamp: string;
-  temperatura: number;
+  [key: string]: string | number;
 }
 
 export interface Medicion {

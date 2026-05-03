@@ -82,7 +82,9 @@ const DashboardPage = () => {
     setHasError(false);
 
     try {
-      const tempData = await dataService.getTemperatureHistory();
+      // If celdas are still loading or empty, wait or fetch them first
+      // But we have `celdas` from `useSensorData()`. It might be empty initially.
+      const tempData = await dataService.getTemperatureHistory(celdas.length > 0 ? celdas : await dataService.getCeldas());
 
       if (!Array.isArray(tempData) || tempData.length === 0) {
         throw new Error('Datos de temperatura inválidos');
@@ -110,7 +112,7 @@ const DashboardPage = () => {
     setIsRefreshing(true);
 
     try {
-      const tempData = await dataService.getTemperatureHistory();
+      const tempData = await dataService.getTemperatureHistory(celdas);
 
       setTemperatureData(tempData);
       setLastUpdate(new Date());
@@ -353,7 +355,7 @@ const DashboardPage = () => {
             <Grid templateColumns="repeat(2, 1fr)" gap={6} alignItems="stretch">
               <GridItem h="100%">
                 {temperatureData.length > 0 ? (
-                  <TemperatureChart data={temperatureData} />
+                  <TemperatureChart data={temperatureData} celdas={celdas} />
                 ) : (
                   <Box
                     bg="white"

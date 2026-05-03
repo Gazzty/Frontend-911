@@ -2,13 +2,16 @@ import { Box, Text, HStack, Button } from '@chakra-ui/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { TemperatureReading } from '../../types';
+import type { TemperatureReading, Celda } from '../../types';
 
 const MotionBox = motion.create(Box);
 
 interface TemperatureChartProps {
   data: TemperatureReading[];
+  celdas: Celda[];
 }
+
+const COLORS = ['#FF4500', '#51CF66', '#339AF0', '#FCC419', '#F06595', '#845EF7', '#20C997', '#FF922B', '#94D82D', '#4C6EF5'];
 
 type TimeRange = 'year' | 'month' | 'week' | 'day';
 
@@ -20,7 +23,7 @@ const downsample = (data: TemperatureReading[], maxPoints: number): TemperatureR
   return data.filter((_, i) => i % step === 0);
 };
 
-const TemperatureChart = ({ data }: TemperatureChartProps) => {
+const TemperatureChart = ({ data, celdas }: TemperatureChartProps) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
 
   const formatXAxis = (timestamp: string) => {
@@ -135,20 +138,24 @@ const TemperatureChart = ({ data }: TemperatureChartProps) => {
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
-              formatter={(value: any) => [`${value}°C`, 'Temperatura']}
+              formatter={(value: any, name: any) => [`${value}°C`, name]}
               labelFormatter={(label: any) => {
                 const date = new Date(label);
                 return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
               }}
             />
-            <Line
-              type="monotone"
-              dataKey="temperatura"
-              stroke="#FF4500"
-              strokeWidth={2}
-              dot={showDots ? { fill: '#FF4500', r: 3 } : false}
-              activeDot={{ r: 5 }}
-            />
+            {celdas.map((celda, index) => (
+              <Line
+                key={celda.id}
+                type="monotone"
+                dataKey={`celda_${celda.id}`}
+                name={celda.nombre}
+                stroke={COLORS[index % COLORS.length]}
+                strokeWidth={2}
+                dot={showDots ? { fill: COLORS[index % COLORS.length], r: 3 } : false}
+                activeDot={{ r: 5 }}
+              />
+            ))}
           </LineChart>
           </ResponsiveContainer>
         </Box>
