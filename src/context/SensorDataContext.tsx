@@ -4,7 +4,7 @@ import { websocketService, type ConnectionStatus } from '../services/websocketSe
 import type { Medicion, Celda } from '../types';
 
 interface SensorDataContextType {
-  /** Mediciones crudas del WebSocket (último batch recibido) */
+  /** Mediciones crudas del WebSocket (último batch procesado) */
   mediciones: Medicion[];
   /** Historial completo de mediciones acumuladas */
   historialMediciones: Medicion[];
@@ -14,6 +14,10 @@ interface SensorDataContextType {
   connectionStatus: ConnectionStatus;
   /** Última vez que se recibieron datos */
   lastUpdate: Date | null;
+  /** Intervalo de medición actual en segundos */
+  intervaloMedicion: number;
+  /** Actualizar el intervalo de medición */
+  setIntervaloMedicion: (intervalo: number) => void;
 }
 
 const SensorDataContext = createContext<SensorDataContextType | null>(null);
@@ -129,6 +133,8 @@ const CELDAS_BASE: Celda[] = [
 ];
 
 const UMBRAL_TEMPERATURA = 50;
+/** Intervalo por defecto en segundos (mismo que en Config mock) */
+const DEFAULT_INTERVALO = 600;
 
 export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const [mediciones, setMediciones] = useState<Medicion[]>([]);
@@ -136,14 +142,19 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const [celdas, setCeldas] = useState<Celda[]>(CELDAS_BASE);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('desconectado');
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [intervaloMedicion, setIntervaloMedicion] = useState(DEFAULT_INTERVALO);
+
   const celdasRef = useRef<Celda[]>(CELDAS_BASE);
+  /** Buffer de mediciones que se acumulan hasta que el intervalo las procesa */
+  const bufferRef = useRef<Medicion[]>([]);
 
   const actualizarCeldas = useCallback((nuevasMediciones: Medicion[]) => {
     const celdasActualizadas = celdasRef.current.map((celda) => {
       let celdaModificada = false;
       const sensoresActualizados = celda.sensores.map((sensor) => {
-        // Buscar si hay una medición para este sensor
-        const medicion = nuevasMediciones.find((m) => m.sensorId === sensor.id);
+        // Buscar la última medición para este sensor (la más reciente del buffer)
+        const medicionesDelSensor = nuevasMediciones.filter((m) => m.sensorId === sensor.id);
+        const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
           const temp = parseFloat(medicion.value.trim());
@@ -165,10 +176,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const fecha = ultimaMedicion ? new Date(ultimaMedicion.date) : null;
         const timestamp = fecha
           ? fecha.toLocaleTimeString('es-AR', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })
           : celda.timestamp;
 
         return {
@@ -186,19 +197,14 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     setCeldas(celdasActualizadas);
   }, []);
 
+  // Escuchar mensajes del WebSocket y acumularlos en el buffer
   useEffect(() => {
-    // Iniciar conexión WebSocket
     websocketService.start();
 
-    // Escuchar mensajes
     const unsubMessage = websocketService.onMessage((nuevasMediciones) => {
-      setMediciones(nuevasMediciones);
-      setHistorialMediciones((prev) => [...prev, ...nuevasMediciones]);
-      setLastUpdate(new Date());
-      actualizarCeldas(nuevasMediciones);
+      bufferRef.current = [...bufferRef.current, ...nuevasMediciones];
     });
 
-    // Escuchar cambios de estado
     const unsubStatus = websocketService.onStatusChange((status) => {
       setConnectionStatus(status);
     });
@@ -208,7 +214,32 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       unsubStatus();
       websocketService.stop();
     };
-  }, [actualizarCeldas]);
+  }, []);
+
+  // Procesar el buffer al ritmo del intervalo configurado
+  useEffect(() => {
+    const procesarBuffer = () => {
+      const buffer = bufferRef.current;
+      if (buffer.length === 0) return;
+
+      // Vaciar buffer
+      bufferRef.current = [];
+
+      // Actualizar estado
+      setMediciones(buffer);
+      setHistorialMediciones((prev) => [...prev, ...buffer]);
+      setLastUpdate(new Date());
+      actualizarCeldas(buffer);
+    };
+
+    // Procesar inmediatamente si ya hay datos en el buffer
+    procesarBuffer();
+
+    const intervalMs = intervaloMedicion * 1000;
+    const intervalId = setInterval(procesarBuffer, intervalMs);
+
+    return () => clearInterval(intervalId);
+  }, [intervaloMedicion, actualizarCeldas]);
 
   return (
     <SensorDataContext.Provider
@@ -218,6 +249,8 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         celdas,
         connectionStatus,
         lastUpdate,
+        intervaloMedicion,
+        setIntervaloMedicion,
       }}
     >
       {children}

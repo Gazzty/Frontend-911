@@ -8,6 +8,7 @@ import NotificacionesConfig from '../components/config/NotificacionesConfig';
 import CeldasConfig from '../components/config/CeldasConfig';
 import ConfigTabButton from '../components/config/ConfigTabButton';
 import { dataService } from '../services/dataService';
+import { useSensorData } from '../context/SensorDataContext';
 import type { Config, Celda } from '../types';
 
 const toaster = createToaster({
@@ -16,6 +17,7 @@ const toaster = createToaster({
 });
 
 const ConfiguracionPage = () => {
+  const { intervaloMedicion, setIntervaloMedicion, celdas: celdasContext } = useSensorData();
   const [config, setConfig] = useState<Config | null>(null);
   const [celdas, setCeldas] = useState<Celda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +35,8 @@ const ConfiguracionPage = () => {
         dataService.getCeldas(),
       ]);
 
+      // Usar el intervalo del context (que persiste entre navegaciones)
+      configData.umbrales.intervaloMedicion = intervaloMedicion;
       setConfig(configData);
       setCeldas(celdasData);
     } catch (error) {
@@ -60,6 +64,8 @@ const ConfiguracionPage = () => {
     try {
       await dataService.updateConfig(newConfig);
       setConfig(newConfig);
+      // Actualizar el intervalo en el context compartido
+      setIntervaloMedicion(intervalo);
       
       toaster.create({
         title: 'Guardado',

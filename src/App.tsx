@@ -23,39 +23,37 @@ function App() {
   return (
     <ChakraProvider value={system}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <SensorDataProvider>
+        <SensorDataProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
                   <DashboardPage />
-                </SensorDataProvider>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/mapa"
-            element={
-              <ProtectedRoute>
-                <SensorDataProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mapa"
+              element={
+                <ProtectedRoute>
                   <MapaPage />
-                </SensorDataProvider>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/configuracion"
-            element={
-              <ProtectedRoute>
-                <ConfiguracionPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/configuracion"
+              element={
+                <ProtectedRoute>
+                  <ConfiguracionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </SensorDataProvider>
       </BrowserRouter>
     </ChakraProvider>
   );
