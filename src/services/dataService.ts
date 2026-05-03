@@ -184,7 +184,7 @@ export const dataService = {
     return {
       umbrales: {
         temperatura: 50,
-        intervaloMedicion: 600,
+        intervaloMedicion: 10,
       },
       notificaciones: {
         email: true,

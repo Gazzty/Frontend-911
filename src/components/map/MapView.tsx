@@ -91,12 +91,8 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
 
     // Add new markers
     celdas.forEach((celda) => {
-      const hasAlert = celda.sensores.some((s) => s.enFuego)
-      const alertCount = celda.sensores.filter((s) => s.enFuego).length
-      const avgTemp = Math.round(
-        celda.sensores.reduce((acc, s) => acc + s.temperatura, 0) /
-          celda.sensores.length
-      )
+      const sensor = celda.sensores[0]
+      const hasAlert = sensor ? sensor.enFuego : false
 
       const marker = L.marker([celda.ubicacion.lat, celda.ubicacion.lng], {
         icon: crearIconoCelda(hasAlert),
@@ -109,15 +105,11 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
           </h3>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 14px;">
-              <span style="color: #6B6B6B;">Sensores:</span>
-              <span style="font-weight: 600;">${celda.sensores.length}</span>
+              <span style="color: #6B6B6B;">Temperatura:</span>
+              <span style="font-weight: 600;">${sensor ? sensor.temperatura : 0}°C</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 14px;">
-              <span style="color: #6B6B6B;">Temperatura promedio:</span>
-              <span style="font-weight: 600;">${avgTemp}°C</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 14px;">
-              <span style="color: #6B6B6B;">Estado:</span>
+              <span style="color: #6B6B6B;">Estado Red:</span>
               <span style="font-weight: 600; color: ${celda.activa ? '#51CF66' : '#6B6B6B'};">
                 ${celda.activa ? 'Activa' : 'Inactiva'}
               </span>
@@ -125,15 +117,15 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
             ${
               hasAlert
                 ? `<div style="margin-top: 8px; padding: 8px; background: #FEE; border-radius: 6px; border-left: 3px solid #FF4500;">
-                    <div style="font-weight: 600; color: #C53030; font-size: 14px;">⚠️ Alerta de incendio</div>
+                    <div style="font-weight: 600; color: #C53030; font-size: 14px;">⚠️ FUEGO</div>
                     <div style="font-size: 13px; color: #E53E3E; margin-top: 4px;">
-                      ${alertCount} sensor${alertCount > 1 ? 'es' : ''} detectó temperatura crítica
+                      Temperatura crítica detectada
                     </div>
                   </div>`
                 : `<div style="margin-top: 8px; padding: 8px; background: #F0FFF4; border-radius: 6px; border-left: 3px solid #51CF66;">
-                    <div style="font-weight: 600; color: #22543D; font-size: 14px;">✓ Sin alertas</div>
+                    <div style="font-weight: 600; color: #22543D; font-size: 14px;">✓ NORMAL</div>
                     <div style="font-size: 13px; color: #38A169; margin-top: 4px;">
-                      Todos los sensores operando normalmente
+                      Operando normalmente
                     </div>
                   </div>`
             }

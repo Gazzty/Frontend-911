@@ -2,13 +2,14 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
 import type { Medicion, Celda } from '../types';
+import { getCells, type Cell } from '../api/cellApi';
 
 interface SensorDataContextType {
   /** Mediciones crudas del WebSocket (último batch procesado) */
   mediciones: Medicion[];
   /** Historial completo de mediciones acumuladas */
   historialMediciones: Medicion[];
-  /** Celdas actualizadas con datos reales del WebSocket */
+  /** Celdas con datos reales del backend + actualizaciones del WebSocket */
   celdas: Celda[];
   /** Estado de la conexión WebSocket */
   connectionStatus: ConnectionStatus;
@@ -18,141 +19,63 @@ interface SensorDataContextType {
   intervaloMedicion: number;
   /** Actualizar el intervalo de medición */
   setIntervaloMedicion: (intervalo: number) => void;
+  /** true mientras se cargan las celdas desde la API */
+  cargandoCeldas: boolean;
 }
 
 const SensorDataContext = createContext<SensorDataContextType | null>(null);
 
-/**
- * Mapeo estático de sensorId a celda.
- * Mientras no haya un endpoint REST para obtener la configuración de celdas,
- * usamos estos datos mock como base y actualizamos los valores con el WebSocket.
- */
-const CELDAS_BASE: Celda[] = [
-  {
-    id: 1,
-    nombre: 'Celda Bariloche Norte',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 1, temperatura: 0, enFuego: false },
-      { id: 2, temperatura: 0, enFuego: false },
-      { id: 3, temperatura: 0, enFuego: false },
-      { id: 4, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -41.1335, lng: -71.3103 },
-  },
-  {
-    id: 2,
-    nombre: 'Celda Ushuaia Centro',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 5, temperatura: 0, enFuego: false },
-      { id: 6, temperatura: 0, enFuego: false },
-      { id: 7, temperatura: 0, enFuego: false },
-      { id: 8, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -54.8019, lng: -68.3029 },
-  },
-  {
-    id: 3,
-    nombre: 'Celda El Bolsón Sur',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 9, temperatura: 0, enFuego: false },
-      { id: 10, temperatura: 0, enFuego: false },
-      { id: 11, temperatura: 0, enFuego: false },
-      { id: 12, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -41.9628, lng: -71.5339 },
-  },
-  {
-    id: 4,
-    nombre: 'Celda Villa La Angostura',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 13, temperatura: 0, enFuego: false },
-      { id: 14, temperatura: 0, enFuego: false },
-      { id: 15, temperatura: 0, enFuego: false },
-      { id: 16, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -40.7621, lng: -71.6644 },
-  },
-  {
-    id: 5,
-    nombre: 'Celda San Martín de los Andes',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 17, temperatura: 0, enFuego: false },
-      { id: 18, temperatura: 0, enFuego: false },
-      { id: 19, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -40.1527, lng: -71.3530 },
-  },
-  {
-    id: 6,
-    nombre: 'Celda Esquel Oeste',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 20, temperatura: 0, enFuego: false },
-      { id: 21, temperatura: 0, enFuego: false },
-      { id: 22, temperatura: 0, enFuego: false },
-      { id: 23, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -42.9116, lng: -71.3206 },
-  },
-  {
-    id: 7,
-    nombre: 'Celda Lago Puelo',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 24, temperatura: 0, enFuego: false },
-      { id: 25, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -42.0749, lng: -71.6111 },
-  },
-  {
-    id: 8,
-    nombre: 'Celda Junín de los Andes',
-    timestamp: '--:--:--',
-    activa: true,
-    sensores: [
-      { id: 26, temperatura: 0, enFuego: false },
-      { id: 27, temperatura: 0, enFuego: false },
-      { id: 28, temperatura: 0, enFuego: false },
-      { id: 29, temperatura: 0, enFuego: false },
-      { id: 30, temperatura: 0, enFuego: false },
-    ],
-    ubicacion: { lat: -39.9505, lng: -71.0742 },
-  },
-];
-
 const UMBRAL_TEMPERATURA = 50;
-/** Intervalo por defecto en segundos (mismo que en Config mock) */
-const DEFAULT_INTERVALO = 600;
+const DEFAULT_INTERVALO = 10;
+
+function cellToCelda(cell: Cell): Celda {
+  return {
+    id: cell.id,
+    nombre: cell.description,
+    timestamp: '--:--:--',
+    activa: cell.active,
+    sensores: cell.sensors
+      .filter((s) => s.active)
+      .map((s) => ({ id: s.sensorHardwareRouteId, temperatura: 0, enFuego: false })),
+    ubicacion: {
+      lat: parseFloat(cell.latitude),
+      lng: parseFloat(cell.longitude),
+    },
+  };
+}
 
 export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const [mediciones, setMediciones] = useState<Medicion[]>([]);
   const [historialMediciones, setHistorialMediciones] = useState<Medicion[]>([]);
-  const [celdas, setCeldas] = useState<Celda[]>(CELDAS_BASE);
+  const [celdas, setCeldas] = useState<Celda[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('desconectado');
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [intervaloMedicion, setIntervaloMedicion] = useState(DEFAULT_INTERVALO);
+  const [cargandoCeldas, setCargandoCeldas] = useState(true);
 
-  const celdasRef = useRef<Celda[]>(CELDAS_BASE);
-  /** Buffer de mediciones que se acumulan hasta que el intervalo las procesa */
+  const celdasRef = useRef<Celda[]>([]);
   const bufferRef = useRef<Medicion[]>([]);
+
+  // Cargar celdas desde la API REST al montar
+  useEffect(() => {
+    getCells()
+      .then((cells) => {
+        const celdasDelApi = cells.map(cellToCelda);
+        celdasRef.current = celdasDelApi;
+        setCeldas(celdasDelApi);
+      })
+      .catch((err) => {
+        console.error('[CellAPI] Error al cargar celdas:', err);
+      })
+      .finally(() => {
+        setCargandoCeldas(false);
+      });
+  }, []);
 
   const actualizarCeldas = useCallback((nuevasMediciones: Medicion[]) => {
     const celdasActualizadas = celdasRef.current.map((celda) => {
       let celdaModificada = false;
       const sensoresActualizados = celda.sensores.map((sensor) => {
-        // Buscar la última medición para este sensor (la más reciente del buffer)
         const medicionesDelSensor = nuevasMediciones.filter((m) => m.sensorId === sensor.id);
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
@@ -168,7 +91,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (celdaModificada) {
-        // Actualizar timestamp de la celda con la medición más reciente
         const medicionesDelaCelda = nuevasMediciones.filter((m) =>
           celda.sensores.some((s) => s.id === m.sensorId)
         );
@@ -176,10 +98,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const fecha = ultimaMedicion ? new Date(ultimaMedicion.date) : null;
         const timestamp = fecha
           ? fecha.toLocaleTimeString('es-AR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })
           : celda.timestamp;
 
         return {
@@ -222,17 +144,14 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       const buffer = bufferRef.current;
       if (buffer.length === 0) return;
 
-      // Vaciar buffer
       bufferRef.current = [];
 
-      // Actualizar estado
       setMediciones(buffer);
       setHistorialMediciones((prev) => [...prev, ...buffer]);
       setLastUpdate(new Date());
       actualizarCeldas(buffer);
     };
 
-    // Procesar inmediatamente si ya hay datos en el buffer
     procesarBuffer();
 
     const intervalMs = intervaloMedicion * 1000;
@@ -251,6 +170,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         lastUpdate,
         intervaloMedicion,
         setIntervaloMedicion,
+        cargandoCeldas,
       }}
     >
       {children}

@@ -1,6 +1,5 @@
-import { Box, Text, VStack, HStack } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Badge } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import type { Celda } from '../../types';
 
 const MotionBox = motion.create(Box);
@@ -8,10 +7,11 @@ const MotionBox = motion.create(Box);
 interface CeldaCardProps {
   celda: Celda;
   index: number;
+  onClick?: (celda: Celda) => void;
 }
 
-const CeldaCard = ({ celda, index }: CeldaCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
+  const sensor = celda.sensores[0];
 
   return (
     <MotionBox
@@ -19,15 +19,15 @@ const CeldaCard = ({ celda, index }: CeldaCardProps) => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
     >
-      <Box>
+      <Box mb={2}>
         <HStack
           bg="gray.100"
           _hover={{ bg: 'gray.200' }}
           borderRadius="md"
           py={3}
           px={4}
-          cursor="pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
+          cursor={onClick ? 'pointer' : 'default'}
+          onClick={() => onClick && onClick(celda)}
           justify="space-between"
         >
           <HStack gap={3}>
@@ -35,7 +35,7 @@ const CeldaCard = ({ celda, index }: CeldaCardProps) => {
               w={3}
               h={3}
               borderRadius="full"
-              bg={celda.activa ? 'green.400' : 'brand.orange'}
+              bg={sensor?.enFuego ? 'brand.orange' : (celda.activa ? 'green.400' : 'gray.400')}
             />
             <VStack align="start" gap={0}>
               <Text fontWeight="600" fontSize="sm">
@@ -46,29 +46,26 @@ const CeldaCard = ({ celda, index }: CeldaCardProps) => {
               </Text>
             </VStack>
           </HStack>
-          <Text>{isExpanded ? '▲' : '▼'}</Text>
+          
+          <HStack gap={4}>
+            {sensor && (
+              <>
+                <Text fontWeight="bold" fontSize="sm">
+                  {sensor.temperatura}°C
+                </Text>
+                {sensor.enFuego ? (
+                  <Badge colorPalette="red" bg="red.500" color="white" px={2} py={0.5} borderRadius="md" fontSize="xs">
+                    FUEGO
+                  </Badge>
+                ) : (
+                  <Badge colorPalette="green" bg="green.500" color="white" px={2} py={0.5} borderRadius="md" fontSize="xs">
+                    NORMAL
+                  </Badge>
+                )}
+              </>
+            )}
+          </HStack>
         </HStack>
-
-        {isExpanded && (
-          <Box bg="white" p={4} mt={1} borderRadius="md" borderWidth="1px" borderColor="gray.100">
-            <VStack align="stretch" gap={2}>
-              <HStack justify="space-between" fontSize="xs" color="gray.500" fontWeight="700" textTransform="uppercase" letterSpacing="wide" pb={1} borderBottom="1px solid" borderColor="gray.200">
-                <Text>ID Sensor</Text>
-                <Text>Temperatura</Text>
-                <Text>Incendio</Text>
-              </HStack>
-              {celda.sensores.map((sensor) => (
-                <HStack key={sensor.id} justify="space-between" fontSize="sm">
-                  <Text>Sensor {sensor.id}</Text>
-                  <Text>{sensor.temperatura}°C</Text>
-                  <Text color={sensor.enFuego ? 'red.500' : 'green.400'} fontWeight={sensor.enFuego ? "bold" : "normal"}>
-                    {sensor.enFuego ? 'SÍ' : 'NO'}
-                  </Text>
-                </HStack>
-              ))}
-            </VStack>
-          </Box>
-        )}
       </Box>
     </MotionBox>
   );
