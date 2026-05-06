@@ -8,8 +8,7 @@ import { request } from "./client";
 export interface Sensor {
   active: boolean;
   sensorHardwareRouteId: number;
-  typeId: number;
-  typeDescription: string;
+  type: { id: number; description: string };
   pollingTimeInterval: number;
 }
 

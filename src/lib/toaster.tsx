@@ -1,0 +1,18 @@
+import { Stack, Toast, Toaster as ChakraToaster, createToaster } from '@chakra-ui/react';
+
+export const toaster = createToaster({ placement: 'top', duration: 3000 });
+
+export const Toaster = () => (
+  <ChakraToaster toaster={toaster}>
+    {(toast) => (
+      <Toast.Root key={toast.id} width="sm">
+        <Toast.Indicator />
+        <Stack gap="1" flex="1" maxWidth="100%">
+          {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
+          {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
+        </Stack>
+        <Toast.CloseTrigger />
+      </Toast.Root>
+    )}
+  </ChakraToaster>
+);

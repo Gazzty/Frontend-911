@@ -104,8 +104,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         sensors: formSensores.map((s) => ({
           active: true,
           sensorHardwareRouteId: s.sensorHardwareRouteId,
-          typeId: 1,
-          typeDescription: 'Temperatura',
+          type: { id: 1, description: 'Temperatura' },
           pollingTimeInterval: s.pollingTimeInterval,
         })),
       };

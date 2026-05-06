@@ -93,7 +93,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
-          const temp = parseFloat(medicion.value.trim());
+          const temp = parseFloat((medicion.value ?? '').trim());
           return {
             ...sensor,
             temperatura: isNaN(temp) ? sensor.temperatura : temp,
@@ -108,7 +108,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
           celda.sensores.some((s) => s.id === m.sensorId)
         );
         const ultimaMedicion = medicionesDelaCelda[medicionesDelaCelda.length - 1];
-        const fecha = ultimaMedicion ? new Date(ultimaMedicion.date) : null;
+        const fecha = ultimaMedicion?.date ? new Date(ultimaMedicion.date) : null;
         const timestamp = fecha
           ? fecha.toLocaleTimeString('es-AR', {
               hour: '2-digit',
