@@ -104,8 +104,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         sensors: formSensores.map((s) => ({
           active: true,
           sensorHardwareRouteId: s.sensorHardwareRouteId,
-          typeId: 1,
-          typeDescription: 'Temperatura',
+          type: { id: 1, description: 'Temperatura' },
           pollingTimeInterval: s.pollingTimeInterval,
         })),
       };
@@ -132,15 +131,19 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
   const handleDelete = async () => {
     if (!selectedCelda) return;
     setIsDeleting(true);
+    const nombre = selectedCelda.nombre;
     try {
       await onDelete(selectedCelda.id);
       setIsDeleteModalOpen(false);
       setSelectedCelda(null);
       toaster.create({
         title: 'Celda eliminada',
-        description: `${selectedCelda.nombre} fue eliminada correctamente`,
+        description: `${nombre} fue eliminada correctamente`,
         type: 'info',
       });
+    } catch {
+      setIsDeleteModalOpen(false);
+      setSelectedCelda(null);
     } finally {
       setIsDeleting(false);
     }
