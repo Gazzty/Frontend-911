@@ -40,7 +40,7 @@ class WebSocketService {
     // Assign before setting up handlers so stop() can clear it
     this.connection = connection;
 
-    connection.on('BackendMessage', (mediciones: Medicion[]) => {
+    connection.on('SensorPollings', (mediciones: Medicion[]) => {
       this.messageCallbacks.forEach((cb) => cb(mediciones));
     });
 
