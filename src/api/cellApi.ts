@@ -6,6 +6,7 @@ import { request } from "./client";
 //
 
 export interface Sensor {
+  id?: number;
   active: boolean;
   sensorHardwareRouteId: number;
   type: { id: number; description: string };

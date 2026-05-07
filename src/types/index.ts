@@ -36,10 +36,10 @@ export interface TemperatureReading {
 }
 
 export interface Medicion {
-  id: number;
-  sensorId: number;
-  date: string;
-  value: string;
+  sensorHardwareRouteId: number | null;
+  pollingValue: string;
+  dateTime: string;
+  sensorId: number | null;
 }
 
 export interface Config {

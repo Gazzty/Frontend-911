@@ -23,6 +23,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/Cell': { target: 'https://localhost:7035', changeOrigin: true, secure: false },
+      '/Sensor': { target: 'https://localhost:7035', changeOrigin: true, secure: false },
       '/Config': { target: 'https://localhost:7035', changeOrigin: true, secure: false },
       '/Fired': { target: 'https://localhost:7035', changeOrigin: true, secure: false },
     },

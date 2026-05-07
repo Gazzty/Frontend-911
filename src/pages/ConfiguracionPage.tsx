@@ -22,6 +22,7 @@ const ConfiguracionPage = () => {
   const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, historialMediciones } = useSensorData();
 
   const sensoresDisponibles = [...new Set(historialMediciones.map((m) => m.sensorId))]
+    .filter((id): id is number => id !== null)
     .sort((a, b) => a - b);
   const [config, setConfig] = useState<Config | null>(null);
   const [isLoading, setIsLoading] = useState(true);

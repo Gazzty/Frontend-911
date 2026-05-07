@@ -38,7 +38,7 @@ function cellToCelda(cell: Cell): Celda {
     activa: cell.active,
     sensores: cell.sensors
       .filter((s) => s.active)
-      .map((s) => ({ id: s.sensorHardwareRouteId, temperatura: 0, enFuego: false })),
+      .map((s) => ({ id: s.id ?? 0, temperatura: 0, enFuego: false })),
     ubicacion: {
       lat: parseFloat(cell.latitude),
       lng: parseFloat(cell.longitude),
@@ -93,7 +93,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
-          const temp = parseFloat((medicion.value ?? '').trim());
+          const temp = parseFloat((medicion.pollingValue ?? '').trim());
           return {
             ...sensor,
             temperatura: isNaN(temp) ? sensor.temperatura : temp,
@@ -108,7 +108,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
           celda.sensores.some((s) => s.id === m.sensorId)
         );
         const ultimaMedicion = medicionesDelaCelda[medicionesDelaCelda.length - 1];
-        const fecha = ultimaMedicion?.date ? new Date(ultimaMedicion.date) : null;
+        const fecha = ultimaMedicion?.dateTime ? new Date(ultimaMedicion.dateTime) : null;
         const timestamp = fecha
           ? fecha.toLocaleTimeString('es-AR', {
               hour: '2-digit',
