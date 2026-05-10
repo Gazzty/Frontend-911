@@ -1,5 +1,5 @@
 import { Box, VStack, Text, Stack } from '@chakra-ui/react';
-import { createToaster } from '@chakra-ui/react';
+import { toaster } from '../lib/toaster';
 import { FaThermometerHalf, FaBell, FaDatabase } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
@@ -12,11 +12,6 @@ import { useSensorData } from '../context/SensorDataContext';
 import { createCell, deleteCell } from '../api/cellApi';
 import type { CreateCellDto } from '../api/cellApi';
 import type { Config } from '../types';
-
-const toaster = createToaster({
-  placement: 'top',
-  duration: 3000,
-});
 
 const ConfiguracionPage = () => {
   const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, historialMediciones } = useSensorData();
@@ -127,22 +122,28 @@ const ConfiguracionPage = () => {
 
   const handleCreateCelda = async (data: CreateCellDto) => {
     try {
-      const { warnings } = await createCell(data);
-      await refreshCeldas();
+      const { id: cellId, warnings } = await createCell(data);
 
-      if (warnings.length > 0) {
+      if (warnings.length > 0 && data.sensors.length > 0) {
+        // El sensor ya pertenece a otra celda: deshacer la celda vacía que se creó
+        await deleteCell(cellId).catch(() => {});
         toaster.create({
-          title: 'Sensores no asignados',
-          description: 'Algunos sensores ya pertenecen a otra celda y no se pudieron reutilizar: ' + warnings.join(' '),
-          type: 'warning',
+          title: 'Sensor en uso',
+          description: 'El sensor seleccionado ya está asignado a otra celda. Elegí un sensor diferente.',
+          type: 'error',
+        });
+        throw new Error('sensor_en_uso');
+      }
+
+      await refreshCeldas();
+    } catch (error) {
+      if ((error as Error).message !== 'sensor_en_uso') {
+        toaster.create({
+          title: 'Error',
+          description: 'No se pudo crear la celda',
+          type: 'error',
         });
       }
-    } catch (error) {
-      toaster.create({
-        title: 'Error',
-        description: 'No se pudo crear la celda',
-        type: 'error',
-      });
       throw error;
     }
   };
