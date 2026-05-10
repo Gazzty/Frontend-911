@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
 import type { Medicion, Celda } from '../types';
-import { getCells, type Cell } from '../api/cellApi';
+import { getCellsFull, type Cell } from '../api/cellApi';
 
 interface SensorDataContextType {
   /** Mediciones crudas del WebSocket (último batch procesado) */
@@ -60,7 +60,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
 
   // Cargar celdas desde la API REST al montar
   useEffect(() => {
-    getCells()
+    getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
         celdasRef.current = celdasDelApi;
@@ -76,7 +76,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshCeldas = useCallback(async () => {
     try {
-      const cells = await getCells();
+      const cells = await getCellsFull();
       const celdasDelApi = cells.map(cellToCelda);
       celdasRef.current = celdasDelApi;
       setCeldas(celdasDelApi);

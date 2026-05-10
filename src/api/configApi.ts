@@ -29,10 +29,10 @@ export interface ConfigNotifications {
 // 🌐 Endpoints - Config General
 //
 
-// GET /Config/Get-setting/Config-general
+// GET /Settings/Get-setting/Config-general
 export const getConfigGeneral = async (): Promise<ConfigGeneral> => {
   const res = await request<ApiResponse<SettingDTO>>(
-    "/Config/Get-setting/Config-general"
+    "/Settings/Get-setting/Config-general"
   );
 
   if (!res.success || !res.payload) {
@@ -42,7 +42,7 @@ export const getConfigGeneral = async (): Promise<ConfigGeneral> => {
   return JSON.parse(res.payload.value) as ConfigGeneral;
 };
 
-// PUT /Config/Update
+// PUT /Settings/Update
 export const updateConfigGeneral = async (
   data: ConfigGeneral
 ): Promise<void> => {
@@ -52,7 +52,7 @@ export const updateConfigGeneral = async (
     value: JSON.stringify(data),
   };
 
-  const res = await request<ApiResponse>("/Config/Update", {
+  const res = await request<ApiResponse>("/Settings/Update", {
     method: "PUT",
     body: JSON.stringify(dto),
   });
@@ -68,10 +68,10 @@ export const updateConfigGeneral = async (
 // 🌐 Endpoints - Config Notifications
 //
 
-// GET /Config/Get-setting/Config-notifications
+// GET /Settings/Get-setting/Config-notifications
 export const getConfigNotifications = async (): Promise<ConfigNotifications> => {
   const res = await request<ApiResponse<SettingDTO>>(
-    "/Config/Get-setting/Config-notifications"
+    "/Settings/Get-setting/Config-notifications"
   );
 
   if (!res.success || !res.payload) {
@@ -83,7 +83,7 @@ export const getConfigNotifications = async (): Promise<ConfigNotifications> => 
   return JSON.parse(res.payload.value) as ConfigNotifications;
 };
 
-// PUT /Config/Update
+// PUT /Settings/Update
 export const updateConfigNotifications = async (
   data: ConfigNotifications
 ): Promise<void> => {
@@ -93,7 +93,7 @@ export const updateConfigNotifications = async (
     value: JSON.stringify(data),
   };
 
-  const res = await request<ApiResponse>("/Config/Update", {
+  const res = await request<ApiResponse>("/Settings/Update", {
     method: "PUT",
     body: JSON.stringify(dto),
   });
