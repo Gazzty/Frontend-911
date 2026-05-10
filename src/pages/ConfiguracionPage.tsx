@@ -127,8 +127,16 @@ const ConfiguracionPage = () => {
 
   const handleCreateCelda = async (data: CreateCellDto) => {
     try {
-      await createCell(data);
+      const { warnings } = await createCell(data);
       await refreshCeldas();
+
+      if (warnings.length > 0) {
+        toaster.create({
+          title: 'Sensores no asignados',
+          description: 'Algunos sensores ya pertenecen a otra celda y no se pudieron reutilizar: ' + warnings.join(' '),
+          type: 'warning',
+        });
+      }
     } catch (error) {
       toaster.create({
         title: 'Error',

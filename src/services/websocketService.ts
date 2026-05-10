@@ -29,10 +29,7 @@ class WebSocketService {
     this.setStatus('conectando');
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('/ws', {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-      })
+      .withUrl('/ws')
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Information)
       .build();
