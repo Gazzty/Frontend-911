@@ -6,6 +6,7 @@ import { request } from "./client";
 //
 
 export interface Sensor {
+  id?: number;
   active: boolean;
   sensorHardwareRouteId: number;
   type: { id: number; description: string };
@@ -39,6 +40,23 @@ export const getCells = async (): Promise<Cell[]> => {
   return res.payload ?? [];
 };
 
+// 2a) GET /Cell/Get/Full/{id} — incluye sensores con su tipo
+export const getCellFullById = async (id: number): Promise<Cell> => {
+  const res = await request<ApiResponse<Cell>>(`/Cell/Get/Full/${id}`);
+
+  if (!res.success || !res.payload) {
+    throw new Error(res.errors?.join(", ") || "Cell not found");
+  }
+
+  return res.payload;
+};
+
+// GET /Cell/Get-all + Full por cada celda — trae todas las celdas con sus sensores
+export const getCellsFull = async (): Promise<Cell[]> => {
+  const cells = await getCells();
+  return Promise.all(cells.map((c) => getCellFullById(c.id)));
+};
+
 // 2) GET /Cell/Get/{id}
 export const getCellById = async (id: number): Promise<Cell> => {
   const res = await request<ApiResponse<Cell>>(`/Cell/Get/${id}`);
@@ -50,10 +68,10 @@ export const getCellById = async (id: number): Promise<Cell> => {
   return res.payload;
 };
 
-// 3) POST /Cell/Create
-// devuelve payload: number (el id creado)
-export const createCell = async (data: CreateCellDto): Promise<number> => {
-  const res = await request<ApiResponse<number>>("/Cell/Create", {
+// 3) POST /Cell/Add
+// devuelve { id, warnings } — warnings contiene sensores que no pudieron asignarse
+export const createCell = async (data: CreateCellDto): Promise<{ id: number; warnings: string[] }> => {
+  const res = await request<ApiResponse<number>>("/Cell/Add", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -62,7 +80,7 @@ export const createCell = async (data: CreateCellDto): Promise<number> => {
     throw new Error(res.errors?.join(", ") || "Error creating cell");
   }
 
-  return res.payload;
+  return { id: res.payload, warnings: res.warning ?? [] };
 };
 
 // 4) PUT /Cell/Update

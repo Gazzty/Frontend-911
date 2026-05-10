@@ -1,5 +1,5 @@
 import { Box, VStack, Text, Stack } from '@chakra-ui/react';
-import { createToaster } from '@chakra-ui/react';
+import { toaster } from '../lib/toaster';
 import { FaThermometerHalf, FaBell, FaDatabase } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import Navbar from '../components/layout/Navbar';
@@ -13,15 +13,11 @@ import { createCell, deleteCell } from '../api/cellApi';
 import type { CreateCellDto } from '../api/cellApi';
 import type { Config } from '../types';
 
-const toaster = createToaster({
-  placement: 'top',
-  duration: 3000,
-});
-
 const ConfiguracionPage = () => {
   const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, historialMediciones } = useSensorData();
 
   const sensoresDisponibles = [...new Set(historialMediciones.map((m) => m.sensorId))]
+    .filter((id): id is number => id !== null)
     .sort((a, b) => a - b);
   const [config, setConfig] = useState<Config | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,14 +122,28 @@ const ConfiguracionPage = () => {
 
   const handleCreateCelda = async (data: CreateCellDto) => {
     try {
-      await createCell(data);
+      const { id: cellId, warnings } = await createCell(data);
+
+      if (warnings.length > 0 && data.sensors.length > 0) {
+        // El sensor ya pertenece a otra celda: deshacer la celda vacía que se creó
+        await deleteCell(cellId).catch(() => {});
+        toaster.create({
+          title: 'Sensor en uso',
+          description: 'El sensor seleccionado ya está asignado a otra celda. Elegí un sensor diferente.',
+          type: 'error',
+        });
+        throw new Error('sensor_en_uso');
+      }
+
       await refreshCeldas();
     } catch (error) {
-      toaster.create({
-        title: 'Error',
-        description: 'No se pudo crear la celda',
-        type: 'error',
-      });
+      if ((error as Error).message !== 'sensor_en_uso') {
+        toaster.create({
+          title: 'Error',
+          description: 'No se pudo crear la celda',
+          type: 'error',
+        });
+      }
       throw error;
     }
   };

@@ -29,10 +29,7 @@ class WebSocketService {
     this.setStatus('conectando');
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5035/ws', {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-      })
+      .withUrl('/ws')
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Information)
       .build();
@@ -73,7 +70,7 @@ class WebSocketService {
         return;
       }
 
-      console.log('[WebSocket] Conectado a https://fired.runasp.net/ws');
+      console.log('[WebSocket] Conectado a /ws');
       this.setStatus('conectado');
     } catch (err) {
       // Only set error if this is still the active connection

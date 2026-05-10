@@ -5,6 +5,12 @@ import { request } from "./client";
 // 🧩 Tipos
 //
 
+export interface SettingDTO {
+  code: string;
+  summary: string;
+  value: string;
+}
+
 export interface ConfigGeneral {
   interval: number;
   thresholdTemperature: number;
@@ -23,26 +29,32 @@ export interface ConfigNotifications {
 // 🌐 Endpoints - Config General
 //
 
-// 1) GET /Config/Get/Config-general
+// GET /Settings/Get-setting/Config-general
 export const getConfigGeneral = async (): Promise<ConfigGeneral> => {
-  const res = await request<ApiResponse<ConfigGeneral>>(
-    "/Config/Get/Config-general"
+  const res = await request<ApiResponse<SettingDTO>>(
+    "/Settings/Get-setting/Config-general"
   );
 
   if (!res.success || !res.payload) {
     throw new Error(res.errors?.join(", ") || "Error getting config general");
   }
 
-  return res.payload;
+  return JSON.parse(res.payload.value) as ConfigGeneral;
 };
 
-// 2) PUT /Config/Update/Config-general
+// PUT /Settings/Update
 export const updateConfigGeneral = async (
   data: ConfigGeneral
 ): Promise<void> => {
-  const res = await request<ApiResponse>("/Config/Update/Config-general", {
+  const dto: SettingDTO = {
+    code: "Config-general",
+    summary: "Configuración general del sistema",
+    value: JSON.stringify(data),
+  };
+
+  const res = await request<ApiResponse>("/Settings/Update", {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify(dto),
   });
 
   if (!res.success) {
@@ -56,10 +68,10 @@ export const updateConfigGeneral = async (
 // 🌐 Endpoints - Config Notifications
 //
 
-// 3) GET /Config/Get/Config-notifications
+// GET /Settings/Get-setting/Config-notifications
 export const getConfigNotifications = async (): Promise<ConfigNotifications> => {
-  const res = await request<ApiResponse<ConfigNotifications>>(
-    "/Config/Get/Config-notifications"
+  const res = await request<ApiResponse<SettingDTO>>(
+    "/Settings/Get-setting/Config-notifications"
   );
 
   if (!res.success || !res.payload) {
@@ -68,16 +80,22 @@ export const getConfigNotifications = async (): Promise<ConfigNotifications> => 
     );
   }
 
-  return res.payload;
+  return JSON.parse(res.payload.value) as ConfigNotifications;
 };
 
-// 4) PUT /Config/Update/Config-notifications
+// PUT /Settings/Update
 export const updateConfigNotifications = async (
   data: ConfigNotifications
 ): Promise<void> => {
-  const res = await request<ApiResponse>("/Config/Update/Config-notifications", {
+  const dto: SettingDTO = {
+    code: "Config-notifications",
+    summary: "Configuración de notificaciones",
+    value: JSON.stringify(data),
+  };
+
+  const res = await request<ApiResponse>("/Settings/Update", {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify(dto),
   });
 
   if (!res.success) {

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
 import type { Medicion, Celda } from '../types';
-import { getCells, type Cell } from '../api/cellApi';
+import { getCellsFull, type Cell } from '../api/cellApi';
 
 interface SensorDataContextType {
   /** Mediciones crudas del WebSocket (último batch procesado) */
@@ -38,7 +38,7 @@ function cellToCelda(cell: Cell): Celda {
     activa: cell.active,
     sensores: cell.sensors
       .filter((s) => s.active)
-      .map((s) => ({ id: s.sensorHardwareRouteId, temperatura: 0, enFuego: false })),
+      .map((s) => ({ id: s.id ?? 0, temperatura: 0, enFuego: false })),
     ubicacion: {
       lat: parseFloat(cell.latitude),
       lng: parseFloat(cell.longitude),
@@ -60,11 +60,15 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
 
   // Cargar celdas desde la API REST al montar
   useEffect(() => {
-    getCells()
+    getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
         celdasRef.current = celdasDelApi;
         setCeldas(celdasDelApi);
+
+        // Si ya llegaron mensajes del WebSocket mientras cargaban las celdas,
+        // procesarlos ahora sin esperar el próximo tick del intervalo.
+        procesarBuffer();
       })
       .catch((err) => {
         console.error('[CellAPI] Error al cargar celdas:', err);
@@ -72,28 +76,37 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => {
         setCargandoCeldas(false);
       });
+  // procesarBuffer es estable (useCallback con deps vacías) → no causa re-ejecuciones
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshCeldas = useCallback(async () => {
     try {
-      const cells = await getCells();
+      const cells = await getCellsFull();
       const celdasDelApi = cells.map(cellToCelda);
       celdasRef.current = celdasDelApi;
       setCeldas(celdasDelApi);
+      procesarBuffer();
     } catch (err) {
       console.error('[CellAPI] Error al refrescar celdas:', err);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const actualizarCeldas = useCallback((nuevasMediciones: Medicion[]) => {
     const celdasActualizadas = celdasRef.current.map((celda) => {
       let celdaModificada = false;
       const sensoresActualizados = celda.sensores.map((sensor) => {
-        const medicionesDelSensor = nuevasMediciones.filter((m) => m.sensorId === sensor.id);
+        // Cuando el sensor tiene id=0 (no asignado por el backend), aceptamos
+        // cualquier medición disponible como fallback.
+        const medicionesDelSensor =
+          sensor.id !== 0
+            ? nuevasMediciones.filter((m) => m.sensorId === sensor.id)
+            : nuevasMediciones;
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
-          const temp = parseFloat((medicion.value ?? '').trim());
+          const temp = parseFloat((medicion.pollingValue ?? '').trim());
           return {
             ...sensor,
             temperatura: isNaN(temp) ? sensor.temperatura : temp,
@@ -104,11 +117,12 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (celdaModificada) {
-        const medicionesDelaCelda = nuevasMediciones.filter((m) =>
-          celda.sensores.some((s) => s.id === m.sensorId)
-        );
+        const tieneIdReal = celda.sensores.some((s) => s.id !== 0);
+        const medicionesDelaCelda = tieneIdReal
+          ? nuevasMediciones.filter((m) => celda.sensores.some((s) => s.id === m.sensorId))
+          : nuevasMediciones;
         const ultimaMedicion = medicionesDelaCelda[medicionesDelaCelda.length - 1];
-        const fecha = ultimaMedicion?.date ? new Date(ultimaMedicion.date) : null;
+        const fecha = ultimaMedicion?.dateTime ? new Date(ultimaMedicion.dateTime) : null;
         const timestamp = fecha
           ? fecha.toLocaleTimeString('es-AR', {
               hour: '2-digit',
@@ -152,10 +166,11 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
 
     const unsubMessage = websocketService.onMessage((nuevasMediciones) => {
       bufferRef.current = [...bufferRef.current, ...nuevasMediciones];
-      
-      // Si es el primer mensaje que recibimos, lo procesamos inmediatamente
-      // para no tener que esperar a que pase el primer intervalo
-      if (!hasReceivedInitialDataRef.current) {
+
+      // Procesar inmediatamente solo si las celdas ya están cargadas.
+      // Si aún no cargaron, el dato queda en el buffer y se procesa
+      // cuando getCellsFull resuelve (ver el useEffect de carga).
+      if (!hasReceivedInitialDataRef.current && celdasRef.current.length > 0) {
         hasReceivedInitialDataRef.current = true;
         procesarBuffer();
       }

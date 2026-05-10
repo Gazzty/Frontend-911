@@ -8,6 +8,7 @@ import MapaPage from './pages/MapaPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import { authService } from './services/authService';
 import { SensorDataProvider } from './context/SensorDataContext';
+import { Toaster } from './lib/toaster';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = authService.getCurrentUser();
@@ -24,6 +25,7 @@ function App() {
     <ChakraProvider value={system}>
       <BrowserRouter>
         <SensorDataProvider>
+          <Toaster />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
