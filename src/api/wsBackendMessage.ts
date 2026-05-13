@@ -13,7 +13,7 @@ export const useBackendMessage = () => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    connection.on("BackendMessage", (msg: number) => {
+    connection.on("SensorPollings", (msg: number) => {
       setMessage(msg);
     });
 
@@ -23,7 +23,7 @@ export const useBackendMessage = () => {
       .catch(console.error);
 
     return () => {
-      connection.off("BackendMessage");
+      connection.off("SensorPollings");
     };
   }, []);
 

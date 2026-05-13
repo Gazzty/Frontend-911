@@ -29,7 +29,10 @@ class WebSocketService {
     this.setStatus('conectando');
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('/ws')
+      .withUrl('https://fired.runasp.net/ws', {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
+      })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Information)
       .build();

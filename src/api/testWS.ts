@@ -4,7 +4,7 @@ const connection = new signalR.HubConnectionBuilder()
   .withUrl("https://fired.runasp.net/ws")
   .build();
 
-connection.on("BackendMessage", (msg) => {
+connection.on("SensorPollings", (msg) => {
   console.log("📩 WS:", msg);
 });
 
