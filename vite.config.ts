@@ -16,6 +16,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
@@ -28,5 +29,6 @@ export default defineConfig({
       '/Fired': { target: 'https://localhost:7035', changeOrigin: true, secure: false },
       '/ws': { target: 'https://localhost:7035', ws: true, changeOrigin: true, secure: false },
     },
+    allowedHosts: ['.ngrok-free.app']
   },
 })
