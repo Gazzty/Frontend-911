@@ -2,119 +2,192 @@ import { ApiResponse } from "./ApiResponse";
 import { request } from "./client";
 
 //
-// 🧩 Tipos base
+// 🧩 Types
 //
 
+export interface SensorType {
+  id: number;
+  description: string;
+}
+
 export interface Sensor {
-  id?: number;
+  id: number;
   active: boolean;
   sensorHardwareRouteId: number;
-  type: { id: number; description: string };
+  type: SensorType;
   pollingTimeInterval: number;
+  cellId: number;
 }
 
 export interface Cell {
   id: number;
   description: string;
-  sensors: Sensor[];
   latitude: string;
   longitude: string;
   active: boolean;
+  sensors?: Sensor[];
 }
 
-export type CreateCellDto = Omit<Cell, "id">;
-export type UpdateCellDto = Cell;
+export interface SensorPolling {
+  sensorHardwareRouteId: number;
+  pollingValue: string;
+  dateTime: string;
+  sensorId: number;
+}
+
+export interface CellPolling {
+  id: number;
+  isActive: boolean;
+  description: string;
+  sensorsPollings: SensorPolling[];
+}
+
+export interface GetCellPollingsDto {
+  cellsIds: number[];
+  min: string;
+  max: string;
+}
+
+export type CreateCellDto = {
+  description: string;
+  latitude: string;
+  longitude: string;
+  active: boolean;
+};
+
+export type UpdateCellDto = {
+  id: number;
+  description: string;
+  latitude: string;
+  longitude: string;
+  active: boolean;
+};
 
 //
-// Endpoints
+// 🧩 Helpers
 //
 
-// 1) GET /Cell/Get-all
+const handleResponse = <T>(
+  res: ApiResponse<T>,
+  defaultMessage: string
+): T => {
+  if (!res.success || res.payload === undefined || res.payload === null) {
+    throw new Error(res.errors?.join(", ") || defaultMessage);
+  }
+
+  return res.payload as T;
+};
+
+const handleResponseVoid = (
+  res: ApiResponse,
+  defaultMessage: string
+): void => {
+  if (!res.success) {
+    throw new Error(res.errors?.join(", ") || defaultMessage);
+  }
+};
+
+//
+// 🚀 Endpoints
+//
+
+// 1️⃣ GET /Cell/Get-all
 export const getCells = async (): Promise<Cell[]> => {
   const res = await request<ApiResponse<Cell[]>>("/Cell/Get-all");
 
-  if (!res.success) {
-    throw new Error(res.errors?.join(", ") || "Error fetching cells");
-  }
-
-  return res.payload ?? [];
+  return handleResponse(res, "Error fetching cells") ?? [];
 };
 
-// 2a) GET /Cell/Get/Full/{id} — incluye sensores con su tipo
-export const getCellFullById = async (id: number): Promise<Cell> => {
-  const res = await request<ApiResponse<Cell>>(`/Cell/Get/Full/${id}`);
+// 2️⃣ POST /Cell/Get-cell-pollings
+export const getCellPollings = async (
+  data: GetCellPollingsDto
+): Promise<CellPolling[]> => {
+  const res = await request<ApiResponse<CellPolling[]>>(
+    "/Cell/Get-cell-pollings",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
 
-  if (!res.success || !res.payload) {
-    throw new Error(res.errors?.join(", ") || "Cell not found");
-  }
-
-  return res.payload;
+  return handleResponse(res, "Error fetching cell pollings") ?? [];
 };
 
-// GET /Cell/Get-all + Full por cada celda — trae todas las celdas con sus sensores
+// 3️⃣ GET /Cell/Get/Full/{id}
+export const getCellFullById = async (
+  id: number
+): Promise<Cell> => {
+  const res = await request<ApiResponse<Cell>>(
+    `/Cell/Get/Full/${id}`
+  );
+
+  return handleResponse(res, "Cell not found");
+};
+
+// 4️⃣ GET /Cell/Get/{id}
+export const getCellById = async (
+  id: number
+): Promise<Cell> => {
+  const res = await request<ApiResponse<Cell>>(
+    `/Cell/Get/${id}`
+  );
+
+  return handleResponse(res, "Cell not found");
+};
+
+// Extra helper
 export const getCellsFull = async (): Promise<Cell[]> => {
   const cells = await getCells();
-  return Promise.all(cells.map((c) => getCellFullById(c.id)));
+
+  return Promise.all(
+    cells.map((cell) => getCellFullById(cell.id))
+  );
 };
 
-// 2) GET /Cell/Get/{id}
-export const getCellById = async (id: number): Promise<Cell> => {
-  const res = await request<ApiResponse<Cell>>(`/Cell/Get/${id}`);
+// 5️⃣ POST /Cell/Add
+export const createCell = async (
+  data: CreateCellDto
+): Promise<{
+  id: number;
+  warnings: string[];
+}> => {
+  const res = await request<ApiResponse<number>>(
+    "/Cell/Add",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
 
-  if (!res.success || !res.payload) {
-    throw new Error(res.errors?.join(", ") || "Cell not found");
-  }
-
-  return res.payload;
+  return {
+    id: handleResponse(res, "Error creating cell"),
+    warnings: res.warning ?? [],
+  };
 };
 
-// 3) POST /Cell/Add
-// devuelve { id, warnings } — warnings contiene sensores que no pudieron asignarse
-export const createCell = async (data: CreateCellDto): Promise<{ id: number; warnings: string[] }> => {
-  const res = await request<ApiResponse<number>>("/Cell/Add", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-
-  if (!res.success || res.payload === undefined) {
-    throw new Error(res.errors?.join(", ") || "Error creating cell");
-  }
-
-  return { id: res.payload, warnings: res.warning ?? [] };
-};
-
-// 4) PUT /Cell/Update
-// NO devuelve payload
+// 6️⃣ PUT /Cell/Update
 export const updateCell = async (data: UpdateCellDto): Promise<void> => {
-  const res = await request<ApiResponse>("/Cell/Update", {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
+  const res = await request<ApiResponse>(
+    "/Cell/Update",
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
 
-  if (!res.success) {
-    throw new Error(res.errors?.join(", ") || "Error updating cell");
-  }
+  handleResponseVoid(res, "Error updating cell");
 };
 
-// 5) DELETE /Cell/Delete/{id}
-// export const deleteCell = async (id: number): Promise<void> => {
-//   const res = await request<ApiResponse>(`/Cell/Delete/${id}`, {
-//     method: "DELETE",
-//   });
+// 7️⃣ DELETE /Cell/Delete/{id}
+export const deleteCell = async (
+  id: number
+): Promise<void> => {
+  const res = await request<ApiResponse>(
+    `/Cell/Delete/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 
-//   if (!res.success) {
-//     throw new Error(res.errors?.join(", ") || "Error deleting cell");
-//   }
-// };
-export const deleteCell = async (id: number): Promise<void> => {
-  const res = await request<ApiResponse>(`/Cell/Delete/${id}`, {
-    method: "DELETE",
-  });
-
-  // ⚠️ Backend bug: devuelve success=false aunque borra correctamente
-  if (!res.success && res.errors && res.errors.length > 0) {
-    throw new Error(res.errors.join(", "));
-  }
-
-  // Si success=false pero no hay errores → asumimos OK
+  handleResponseVoid(res, "Error updating cell");
 };
