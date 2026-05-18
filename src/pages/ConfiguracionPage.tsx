@@ -143,6 +143,7 @@ const ConfiguracionPage = () => {
     try {
       await updateCell(data);
       await refreshCeldas();
+      getSensors().then(setSensoresDisponibles).catch(() => {});
     } catch {
       toaster.create({
         title: 'Error',
