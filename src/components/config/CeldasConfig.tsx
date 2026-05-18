@@ -83,7 +83,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
 
   // Sensors available to add in the create form (unassigned + not already in form)
   const availableSensors = sensoresDisponibles.filter(
-    (s) => !s.cellId && !formSensores.some((fs) => fs.sensorId === s.id),
+    (s) => s.cellId == null && !formSensores.some((fs) => fs.sensorId === s.id),
   );
 
   const validate = (): boolean => {
@@ -121,18 +121,18 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
     setLatitude('');
     setLongitude('');
     setFormSensores([]);
-    const first = sensoresDisponibles.find((s) => !s.cellId);
-    setSensorIdSelect(first ? String(first.id) : '');
+    const first = sensoresDisponibles.find((s) => s.cellId == null);
+    setSensorIdSelect(first != null ? String(first.id) : '');
     setErrors({});
   };
 
   const addSensor = () => {
     const id = parseInt(sensorIdSelect);
-    if (!id || formSensores.some((s) => s.sensorId === id)) return;
+    if (isNaN(id) || formSensores.some((s) => s.sensorId === id)) return;
     const updated = [...formSensores, { sensorId: id }];
     setFormSensores(updated);
-    const next = sensoresDisponibles.find((s) => !s.cellId && !updated.some((fs) => fs.sensorId === s.id));
-    setSensorIdSelect(next ? String(next.id) : '');
+    const next = sensoresDisponibles.find((s) => s.cellId == null && !updated.some((fs) => fs.sensorId === s.id));
+    setSensorIdSelect(next != null ? String(next.id) : '');
   };
 
   const removeSensor = (id: number) => {
