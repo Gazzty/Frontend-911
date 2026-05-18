@@ -16,7 +16,7 @@ export interface Sensor {
   sensorHardwareRouteId: number;
   type: SensorType;
   pollingTimeInterval: number;
-  cellId: number;
+  cellId: number | null;
 }
 
 export interface SensorPolling {

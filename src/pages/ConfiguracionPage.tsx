@@ -9,22 +9,23 @@ import CeldasConfig from '../components/config/CeldasConfig';
 import ConfigTabButton from '../components/config/ConfigTabButton';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
-import { createCell, deleteCell } from '../api/cellApi';
-import type { CreateCellDto } from '../api/cellApi';
+import { createCell, deleteCell, updateCell } from '../api/cellApi';
+import type { CreateCellDto, UpdateCellDto } from '../api/cellApi';
+import { getSensorById, getSensors, updateSensor } from '../api/sensorApi';
+import type { Sensor as ApiSensor } from '../api/sensorApi';
 import type { Config } from '../types';
 
 const ConfiguracionPage = () => {
-  const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, historialMediciones } = useSensorData();
+  const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas } = useSensorData();
 
-  const sensoresDisponibles = [...new Set(historialMediciones.map((m) => m.sensorId))]
-    .filter((id): id is number => id !== null)
-    .sort((a, b) => a - b);
+  const [sensoresDisponibles, setSensoresDisponibles] = useState<ApiSensor[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     loadData();
+    getSensors().then(setSensoresDisponibles).catch(() => {});
   }, []);
 
   const loadData = async () => {
@@ -107,43 +108,78 @@ const ConfiguracionPage = () => {
     }
   };
 
-  const handleDeleteCelda = async (id: number) => {
+  const handleDeleteCelda = async (id: number): Promise<void> => {
     try {
       await deleteCell(id);
       await refreshCeldas();
-    } catch (error) {
+    } catch {
       toaster.create({
         title: 'Error',
         description: 'No se pudo eliminar la celda',
         type: 'error',
       });
+      throw new Error('delete_failed');
     }
   };
 
-  const handleCreateCelda = async (data: CreateCellDto) => {
+  const handleBulkDeleteCeldas = async (ids: number[]): Promise<void> => {
     try {
-      const { id: cellId, warnings } = await createCell(data);
+      for (const id of ids) {
+        await deleteCell(id);
+      }
+      await refreshCeldas();
+    } catch {
+      await refreshCeldas().catch(() => {});
+      toaster.create({
+        title: 'Error',
+        description: 'No se pudieron eliminar todas las celdas',
+        type: 'error',
+      });
+      throw new Error('bulk_delete_failed');
+    }
+  };
 
-      if (warnings.length > 0 && data.sensors.length > 0) {
-        // El sensor ya pertenece a otra celda: deshacer la celda vacía que se creó
-        await deleteCell(cellId).catch(() => {});
-        toaster.create({
-          title: 'Sensor en uso',
-          description: 'El sensor seleccionado ya está asignado a otra celda. Elegí un sensor diferente.',
-          type: 'error',
-        });
-        throw new Error('sensor_en_uso');
+  const handleUpdateCelda = async (data: UpdateCellDto): Promise<void> => {
+    try {
+      await updateCell(data);
+      await refreshCeldas();
+    } catch {
+      toaster.create({
+        title: 'Error',
+        description: 'No se pudo actualizar la celda',
+        type: 'error',
+      });
+      throw new Error('update_failed');
+    }
+  };
+
+  const handleCreateCelda = async (data: CreateCellDto & { sensors?: Array<{ sensorDbId: number }> }) => {
+    let cellId: number | null = null;
+    try {
+      const { sensors, ...cellData } = data;
+      const { id } = await createCell(cellData);
+      cellId = id;
+
+      // Assign existing sensors (from /Sensor/Get-all) to the new cell by updating their cellId.
+      if (sensors && sensors.length > 0) {
+        for (const { sensorDbId } of sensors) {
+          const existingSensor = await getSensorById(sensorDbId);
+          await updateSensor({ ...existingSensor, cellId, active: true });
+        }
       }
 
       await refreshCeldas();
+      // Refresh sensor list so newly assigned sensors no longer appear as available
+      getSensors().then(setSensoresDisponibles).catch(() => {});
     } catch (error) {
-      if ((error as Error).message !== 'sensor_en_uso') {
-        toaster.create({
-          title: 'Error',
-          description: 'No se pudo crear la celda',
-          type: 'error',
-        });
+      if (cellId !== null) {
+        await refreshCeldas().catch(() => {});
       }
+      toaster.create({
+        title: 'Error',
+        description: 'No se pudo asignar el sensor a la celda',
+        type: 'error',
+      });
       throw error;
     }
   };
@@ -222,9 +258,11 @@ const ConfiguracionPage = () => {
               {activeTab === 2 && (
                 <CeldasConfig
                   celdas={celdas}
-                  onDelete={handleDeleteCelda}
-                  onCreate={handleCreateCelda}
                   sensoresDisponibles={sensoresDisponibles}
+                  onDelete={handleDeleteCelda}
+                  onBulkDelete={handleBulkDeleteCeldas}
+                  onCreate={handleCreateCelda}
+                  onUpdate={handleUpdateCelda}
                 />
               )}
             </Box>
