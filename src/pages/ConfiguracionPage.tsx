@@ -11,6 +11,7 @@ import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
 import { createCell, deleteCell } from '../api/cellApi';
 import type { CreateCellDto } from '../api/cellApi';
+import { getSensorById, updateSensor } from '../api/sensorApi';
 import type { Config } from '../types';
 
 const ConfiguracionPage = () => {
@@ -120,12 +121,14 @@ const ConfiguracionPage = () => {
     }
   };
 
-  const handleCreateCelda = async (data: CreateCellDto) => {
+  const handleCreateCelda = async (data: CreateCellDto & { sensors?: Array<{ active: boolean; sensorHardwareRouteId: number; type: { id: number; description: string }; pollingTimeInterval: number }> }) => {
+    let cellId: number | null = null;
     try {
-      const { id: cellId, warnings } = await createCell(data);
+      const { sensors, ...cellData } = data;
+      const { id, warnings } = await createCell(cellData);
+      cellId = id;
 
-      if (warnings.length > 0 && data.sensors.length > 0) {
-        // El sensor ya pertenece a otra celda: deshacer la celda vacía que se creó
+      if (warnings.length > 0 && sensors && sensors.length > 0) {
         await deleteCell(cellId).catch(() => {});
         toaster.create({
           title: 'Sensor en uso',
@@ -135,12 +138,31 @@ const ConfiguracionPage = () => {
         throw new Error('sensor_en_uso');
       }
 
+      // Los sensores disponibles son sensores existentes en la BD (su ID viene del WebSocket).
+      // Se actualiza su cellId en lugar de crear sensores nuevos.
+      if (sensors && sensors.length > 0) {
+        for (const sensor of sensors) {
+          const sensorDbId = sensor.sensorHardwareRouteId;
+          const existingSensor = await getSensorById(sensorDbId);
+          await updateSensor({
+            ...existingSensor,
+            cellId,
+            pollingTimeInterval: sensor.pollingTimeInterval,
+            active: true,
+          });
+        }
+      }
+
       await refreshCeldas();
     } catch (error) {
+      // Si la celda ya fue creada, refrescar igualmente para que aparezca en la lista
+      if (cellId !== null) {
+        await refreshCeldas().catch(() => {});
+      }
       if ((error as Error).message !== 'sensor_en_uso') {
         toaster.create({
           title: 'Error',
-          description: 'No se pudo crear la celda',
+          description: 'No se pudo asignar el sensor a la celda',
           type: 'error',
         });
       }

@@ -6,6 +6,10 @@ import { useState } from 'react';
 import type { Celda } from '../../types';
 import type { CreateCellDto } from '../../api/cellApi';
 
+type CreateCellWithSensorsDto = CreateCellDto & {
+  sensors?: Array<{ active: boolean; sensorHardwareRouteId: number; type: { id: number; description: string }; pollingTimeInterval: number }>;
+};
+
 const MotionBox = motion.create(Box);
 
 const toaster = createToaster({ placement: 'top', duration: 3000 });
@@ -18,7 +22,7 @@ interface FormSensor {
 interface CeldasConfigProps {
   celdas: Celda[];
   onDelete: (id: number) => void;
-  onCreate: (data: CreateCellDto) => Promise<void>;
+  onCreate: (data: CreateCellWithSensorsDto) => Promise<void>;
   sensoresDisponibles: number[];
 }
 
@@ -96,7 +100,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
     if (!validate()) return;
     setIsCreating(true);
     try {
-      const data: CreateCellDto = {
+      const data: CreateCellWithSensorsDto = {
         description: description.trim(),
         latitude,
         longitude,
