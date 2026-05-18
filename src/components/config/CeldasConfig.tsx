@@ -1,13 +1,14 @@
 import { Box, Text, VStack, HStack, Button, IconButton, Input, Stack, Flex } from '@chakra-ui/react';
 import { createToaster } from '@chakra-ui/react';
-import { FaTimes, FaPlus, FaExclamationTriangle, FaMicrochip } from 'react-icons/fa';
+import { FaTimes, FaPlus, FaExclamationTriangle, FaMicrochip, FaEdit, FaTrash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { Celda } from '../../types';
-import type { CreateCellDto } from '../../api/cellApi';
+import type { CreateCellDto, UpdateCellDto } from '../../api/cellApi';
+import type { Sensor as ApiSensor } from '../../api/sensorApi';
 
 type CreateCellWithSensorsDto = CreateCellDto & {
-  sensors?: Array<{ active: boolean; sensorHardwareRouteId: number; type: { id: number; description: string }; pollingTimeInterval: number }>;
+  sensors?: Array<{ sensorDbId: number }>;
 };
 
 const MotionBox = motion.create(Box);
@@ -15,82 +16,132 @@ const MotionBox = motion.create(Box);
 const toaster = createToaster({ placement: 'top', duration: 3000 });
 
 interface FormSensor {
-  sensorHardwareRouteId: number;
-  pollingTimeInterval: number;
+  sensorId: number;
 }
 
 interface CeldasConfigProps {
   celdas: Celda[];
-  onDelete: (id: number) => void;
+  sensoresDisponibles: ApiSensor[];
+  onDelete: (id: number) => Promise<void>;
+  onBulkDelete: (ids: number[]) => Promise<void>;
   onCreate: (data: CreateCellWithSensorsDto) => Promise<void>;
-  sensoresDisponibles: number[];
+  onUpdate: (data: UpdateCellDto) => Promise<void>;
 }
 
-const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: CeldasConfigProps) => {
+const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onCreate, onUpdate }: CeldasConfigProps) => {
+  // Selection
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  // Modal visibility
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Targets
   const [selectedCelda, setSelectedCelda] = useState<Celda | null>(null);
+  const [editingCelda, setEditingCelda] = useState<Celda | null>(null);
+
+  // Loading
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
+  // Create form
   const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [formSensores, setFormSensores] = useState<FormSensor[]>([]);
-  const [sensorIdSelect, setSensorIdSelect] = useState('1');
-  const [pollingInput, setPollingInput] = useState('10');
+  const [sensorIdSelect, setSensorIdSelect] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Edit form
+  const [editDescription, setEditDescription] = useState('');
+  const [editLatitude, setEditLatitude] = useState('');
+  const [editLongitude, setEditLongitude] = useState('');
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
+  // Checkbox helpers
+  const allSelected = celdas.length > 0 && selectedIds.size === celdas.length;
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(celdas.map((c) => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  // Sensors available to add in the create form (unassigned + not already in form)
+  const availableSensors = sensoresDisponibles.filter(
+    (s) => !s.cellId && !formSensores.some((fs) => fs.sensorId === s.id),
+  );
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!description.trim()) newErrors.description = 'El nombre es requerido';
+    else if (description.trim().length < 3) newErrors.description = 'Mínimo 3 caracteres';
+    else if (description.trim().length > 50) newErrors.description = 'Máximo 50 caracteres';
+    const lat = parseFloat(latitude);
+    if (!latitude) newErrors.latitude = 'La latitud es requerida';
+    else if (isNaN(lat) || lat < -90 || lat > 90) newErrors.latitude = 'Debe ser entre -90 y 90';
+    const lng = parseFloat(longitude);
+    if (!longitude) newErrors.longitude = 'La longitud es requerida';
+    else if (isNaN(lng) || lng < -180 || lng > 180) newErrors.longitude = 'Debe ser entre -180 y 180';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateEdit = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!editDescription.trim()) newErrors.description = 'El nombre es requerido';
+    else if (editDescription.trim().length < 3) newErrors.description = 'Mínimo 3 caracteres';
+    else if (editDescription.trim().length > 50) newErrors.description = 'Máximo 50 caracteres';
+    const lat = parseFloat(editLatitude);
+    if (!editLatitude) newErrors.latitude = 'La latitud es requerida';
+    else if (isNaN(lat) || lat < -90 || lat > 90) newErrors.latitude = 'Debe ser entre -90 y 90';
+    const lng = parseFloat(editLongitude);
+    if (!editLongitude) newErrors.longitude = 'La longitud es requerida';
+    else if (isNaN(lng) || lng < -180 || lng > 180) newErrors.longitude = 'Debe ser entre -180 y 180';
+    setEditErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const resetForm = () => {
     setDescription('');
     setLatitude('');
     setLongitude('');
     setFormSensores([]);
-    setSensorIdSelect('1');
-    setPollingInput('10');
+    const first = sensoresDisponibles.find((s) => !s.cellId);
+    setSensorIdSelect(first ? String(first.id) : '');
     setErrors({});
   };
 
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!description.trim()) newErrors.description = 'El nombre es requerido';
-    else if (description.trim().length < 3) newErrors.description = 'Mínimo 3 caracteres';
-    else if (description.trim().length > 50) newErrors.description = 'Máximo 50 caracteres';
-
-    const lat = parseFloat(latitude);
-    if (!latitude) newErrors.latitude = 'La latitud es requerida';
-    else if (isNaN(lat) || lat < -90 || lat > 90) newErrors.latitude = 'Debe ser entre -90 y 90';
-
-    const lng = parseFloat(longitude);
-    if (!longitude) newErrors.longitude = 'La longitud es requerida';
-    else if (isNaN(lng) || lng < -180 || lng > 180) newErrors.longitude = 'Debe ser entre -180 y 180';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const availableSensorIds = sensoresDisponibles.filter(
-    (id) => !formSensores.some((s) => s.sensorHardwareRouteId === id),
-  );
-
   const addSensor = () => {
     const id = parseInt(sensorIdSelect);
-    if (formSensores.some((s) => s.sensorHardwareRouteId === id)) return;
-    const interval = Math.max(1, parseInt(pollingInput) || 10);
-    const updated = [...formSensores, { sensorHardwareRouteId: id, pollingTimeInterval: interval }];
+    if (!id || formSensores.some((s) => s.sensorId === id)) return;
+    const updated = [...formSensores, { sensorId: id }];
     setFormSensores(updated);
-    const remaining = sensoresDisponibles.filter(
-      (n) => !updated.some((s) => s.sensorHardwareRouteId === n),
-    );
-    if (remaining.length > 0) setSensorIdSelect(String(remaining[0]));
+    const next = sensoresDisponibles.find((s) => !s.cellId && !updated.some((fs) => fs.sensorId === s.id));
+    setSensorIdSelect(next ? String(next.id) : '');
   };
 
   const removeSensor = (id: number) => {
-    setFormSensores(formSensores.filter((s) => s.sensorHardwareRouteId !== id));
-    if (availableSensorIds.length === 0) setSensorIdSelect(String(id));
+    const updated = formSensores.filter((s) => s.sensorId !== id);
+    setFormSensores(updated);
+    if (!sensorIdSelect) setSensorIdSelect(String(id));
   };
 
+  // --- Create ---
   const handleOpenCreateModal = () => {
     resetForm();
     setIsCreateModalOpen(true);
@@ -105,12 +156,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         latitude,
         longitude,
         active: true,
-        sensors: formSensores.map((s) => ({
-          active: true,
-          sensorHardwareRouteId: s.sensorHardwareRouteId,
-          type: { id: 1, description: 'Temperatura' },
-          pollingTimeInterval: s.pollingTimeInterval,
-        })),
+        sensors: formSensores.map((s) => ({ sensorDbId: s.sensorId })),
       };
       await onCreate(data);
       resetForm();
@@ -127,6 +173,42 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
     }
   };
 
+  // --- Edit ---
+  const handleOpenEditModal = (celda: Celda) => {
+    setEditingCelda(celda);
+    setEditDescription(celda.nombre);
+    setEditLatitude(String(celda.ubicacion.lat));
+    setEditLongitude(String(celda.ubicacion.lng));
+    setEditErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  const handleEdit = async () => {
+    if (!editingCelda || !validateEdit()) return;
+    setIsEditing(true);
+    try {
+      await onUpdate({
+        id: editingCelda.id,
+        description: editDescription.trim(),
+        latitude: editLatitude,
+        longitude: editLongitude,
+        active: editingCelda.activa,
+      });
+      setIsEditModalOpen(false);
+      setEditingCelda(null);
+      toaster.create({
+        title: 'Celda actualizada',
+        description: `"${editDescription.trim()}" se actualizó correctamente`,
+        type: 'success',
+      });
+    } catch {
+      // el error ya lo maneja el padre
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  // --- Single delete ---
   const handleOpenDeleteModal = (celda: Celda) => {
     setSelectedCelda(celda);
     setIsDeleteModalOpen(true);
@@ -136,8 +218,10 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
     if (!selectedCelda) return;
     setIsDeleting(true);
     const nombre = selectedCelda.nombre;
+    const id = selectedCelda.id;
     try {
-      await onDelete(selectedCelda.id);
+      await onDelete(id);
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
       setIsDeleteModalOpen(false);
       setSelectedCelda(null);
       toaster.create({
@@ -150,6 +234,26 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
       setSelectedCelda(null);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // --- Bulk delete ---
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    const count = selectedIds.size;
+    try {
+      await onBulkDelete(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      toaster.create({
+        title: 'Celdas eliminadas',
+        description: `${count} celda${count !== 1 ? 's' : ''} eliminada${count !== 1 ? 's' : ''} correctamente`,
+        type: 'info',
+      });
+    } catch {
+      setIsBulkDeleteModalOpen(false);
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -169,24 +273,51 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" borderWidth="1px" borderColor="gray.200">
+          {/* Header */}
           <HStack justify="space-between" mb={4}>
-            <Box>
-              <Text fontSize="lg" fontWeight="600">Gestión de Celdas</Text>
-              <Text fontSize="xs" color="gray.500" mt={1}>
-                {celdas.length} celda{celdas.length !== 1 ? 's' : ''} configurada{celdas.length !== 1 ? 's' : ''}
-              </Text>
-            </Box>
-            <MotionBox whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                size="sm" bg="brand.black" color="white"
-                onClick={handleOpenCreateModal} _hover={{ bg: 'gray.700' }}
-              >
-                <FaPlus />
-                <Text ml={2}>Nueva Celda</Text>
-              </Button>
-            </MotionBox>
+            <HStack gap={3}>
+              {celdas.length > 0 && (
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                  onChange={toggleSelectAll}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#1A202C' }}
+                />
+              )}
+              <Box>
+                <Text fontSize="lg" fontWeight="600">Gestión de Celdas</Text>
+                <Text fontSize="xs" color="gray.500" mt={1}>
+                  {celdas.length} celda{celdas.length !== 1 ? 's' : ''} configurada{celdas.length !== 1 ? 's' : ''}
+                </Text>
+              </Box>
+            </HStack>
+            <HStack gap={2}>
+              {selectedIds.size > 0 && (
+                <MotionBox whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="sm" bg="red.500" color="white"
+                    onClick={() => setIsBulkDeleteModalOpen(true)}
+                    _hover={{ bg: 'red.600' }}
+                  >
+                    <FaTrash />
+                    <Text ml={2}>Eliminar ({selectedIds.size})</Text>
+                  </Button>
+                </MotionBox>
+              )}
+              <MotionBox whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="sm" bg="brand.black" color="white"
+                  onClick={handleOpenCreateModal} _hover={{ bg: 'gray.700' }}
+                >
+                  <FaPlus />
+                  <Text ml={2}>Nueva Celda</Text>
+                </Button>
+              </MotionBox>
+            </HStack>
           </HStack>
 
+          {/* Cell list */}
           <VStack gap={2} align="stretch">
             {celdas.length === 0 ? (
               <Box bg="gray.50" p={8} borderRadius="md" textAlign="center">
@@ -202,31 +333,53 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ x: 4 }}
                 >
                   <HStack
-                    bg="gray.100" p={3} borderRadius="md" justify="space-between"
-                    _hover={{ bg: 'gray.200' }} transition="all 0.3s ease"
+                    bg={selectedIds.has(celda.id) ? 'blue.50' : 'gray.100'}
+                    p={3} borderRadius="md" justify="space-between"
+                    borderWidth="1px"
+                    borderColor={selectedIds.has(celda.id) ? 'blue.200' : 'transparent'}
+                    _hover={{ bg: selectedIds.has(celda.id) ? 'blue.100' : 'gray.200' }}
+                    transition="all 0.2s ease"
                   >
-                    <VStack align="start" gap={0}>
-                      <Text fontWeight="600" fontSize="sm">{celda.nombre}</Text>
-                      <HStack gap={3}>
-                        <Text fontSize="xs" color="gray.500">{celda.sensores.length} sensores</Text>
-                        <Text fontSize="xs" color="gray.400">•</Text>
-                        <Text fontSize="xs" color="gray.500">
-                          {celda.ubicacion.lat.toFixed(4)}, {celda.ubicacion.lng.toFixed(4)}
-                        </Text>
-                      </HStack>
-                    </VStack>
-                    <MotionBox whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                      <IconButton
-                        aria-label="Eliminar celda" size="sm"
-                        colorPalette="red" variant="ghost"
-                        onClick={() => handleOpenDeleteModal(celda)}
-                      >
-                        <FaTimes />
-                      </IconButton>
-                    </MotionBox>
+                    <HStack gap={3}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(celda.id)}
+                        onChange={() => toggleSelect(celda.id)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#1A202C' }}
+                      />
+                      <VStack align="start" gap={0}>
+                        <Text fontWeight="600" fontSize="sm">{celda.nombre}</Text>
+                        <HStack gap={3}>
+                          <Text fontSize="xs" color="gray.500">{celda.sensores.length} sensor{celda.sensores.length !== 1 ? 'es' : ''}</Text>
+                          <Text fontSize="xs" color="gray.400">•</Text>
+                          <Text fontSize="xs" color="gray.500">
+                            {celda.ubicacion.lat.toFixed(4)}, {celda.ubicacion.lng.toFixed(4)}
+                          </Text>
+                        </HStack>
+                      </VStack>
+                    </HStack>
+                    <HStack gap={1}>
+                      <MotionBox whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                        <IconButton
+                          aria-label="Editar celda" size="sm"
+                          colorPalette="blue" variant="ghost"
+                          onClick={() => handleOpenEditModal(celda)}
+                        >
+                          <FaEdit />
+                        </IconButton>
+                      </MotionBox>
+                      <MotionBox whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                        <IconButton
+                          aria-label="Eliminar celda" size="sm"
+                          colorPalette="red" variant="ghost"
+                          onClick={() => handleOpenDeleteModal(celda)}
+                        >
+                          <FaTimes />
+                        </IconButton>
+                      </MotionBox>
+                    </HStack>
                   </HStack>
                 </MotionBox>
               ))
@@ -235,7 +388,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         </Box>
       </MotionBox>
 
-      {/* Modal Crear Celda */}
+      {/* ── Modal: Crear Celda ── */}
       {isCreateModalOpen && (
         <Box
           position="fixed" top={0} left={0} right={0} bottom={0}
@@ -312,7 +465,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                       <select
                         value={sensorIdSelect}
                         onChange={(e) => setSensorIdSelect(e.target.value)}
-                        disabled={availableSensorIds.length === 0}
+                        disabled={availableSensors.length === 0}
                         style={{
                           width: '100%',
                           padding: '8px 12px',
@@ -320,40 +473,25 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                           border: 'none',
                           backgroundColor: '#EDF2F7',
                           fontSize: '14px',
-                          cursor: availableSensorIds.length === 0 ? 'not-allowed' : 'pointer',
+                          cursor: availableSensors.length === 0 ? 'not-allowed' : 'pointer',
                           outline: 'none',
                           color: '#1A202C',
                         }}
                       >
-                        {availableSensorIds.map((id) => (
-                          <option key={id} value={id}>
-                            Sensor {id}
+                        {availableSensors.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            Sensor {s.id}
                           </option>
                         ))}
-                        {availableSensorIds.length === 0 && (
+                        {availableSensors.length === 0 && (
                           <option>Sin sensores disponibles</option>
                         )}
                       </select>
                     </Box>
-                    <Box w="110px">
-                      <Input
-                        type="number"
-                        placeholder="Intervalo"
-                        value={pollingInput}
-                        onChange={(e) => setPollingInput(e.target.value)}
-                        min={1}
-                        bg="gray.100"
-                        borderWidth="0"
-                        _hover={{ bg: 'gray.200' }}
-                        _focus={{ bg: 'white', borderWidth: '2px', borderColor: 'brand.orange' }}
-                        size="sm"
-                      />
-                      <Text fontSize="xs" color="gray.400" textAlign="center" mt={0.5}>seg.</Text>
-                    </Box>
                     <Button
                       size="sm" bg="brand.black" color="white"
                       onClick={addSensor}
-                      disabled={availableSensorIds.length === 0 || isCreating}
+                      disabled={availableSensors.length === 0 || isCreating}
                       _hover={{ bg: 'gray.700' }}
                     >
                       <FaPlus />
@@ -364,24 +502,21 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                     <VStack gap={1} align="stretch">
                       {formSensores.map((s) => (
                         <HStack
-                          key={s.sensorHardwareRouteId}
+                          key={s.sensorId}
                           bg="gray.100" px={3} py={1.5} borderRadius="md"
                           justify="space-between"
                         >
                           <HStack gap={2}>
                             <FaMicrochip size={12} color="#718096" />
-                            <Text fontSize="sm">Sensor {s.sensorHardwareRouteId}</Text>
+                            <Text fontSize="sm">Sensor {s.sensorId}</Text>
                           </HStack>
-                          <HStack gap={3}>
-                            <Text fontSize="xs" color="gray.500">{s.pollingTimeInterval}s</Text>
-                            <IconButton
-                              aria-label="Quitar sensor" size="xs"
-                              variant="ghost" colorPalette="red"
-                              onClick={() => removeSensor(s.sensorHardwareRouteId)}
-                            >
-                              <FaTimes size={10} />
-                            </IconButton>
-                          </HStack>
+                          <IconButton
+                            aria-label="Quitar sensor" size="xs"
+                            variant="ghost" colorPalette="red"
+                            onClick={() => removeSensor(s.sensorId)}
+                          >
+                            <FaTimes size={10} />
+                          </IconButton>
                         </HStack>
                       ))}
                     </VStack>
@@ -390,7 +525,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                   {formSensores.length === 0 && (
                     <Text fontSize="xs" color="gray.400">
                       {sensoresDisponibles.length === 0
-                        ? 'Sin sensores detectados vía WebSocket todavía.'
+                        ? 'No hay sensores sin celda asignada disponibles.'
                         : 'Sin sensores asignados. Podés crear la celda sin sensores y agregarlos después.'}
                     </Text>
                   )}
@@ -420,7 +555,98 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
         </Box>
       )}
 
-      {/* Modal Confirmar Eliminación */}
+      {/* ── Modal: Editar Celda ── */}
+      {isEditModalOpen && editingCelda && (
+        <Box
+          position="fixed" top={0} left={0} right={0} bottom={0}
+          bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center"
+          zIndex={1000}
+          onClick={() => !isEditing && setIsEditModalOpen(false)}
+        >
+          <MotionBox
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Box
+              bg="white" p={6} borderRadius="lg" boxShadow="xl"
+              w="460px" maxH="90vh" overflowY="auto"
+            >
+              <Text fontSize="lg" fontWeight="600" mb={5}>Editar Celda</Text>
+
+              <VStack gap={4} align="stretch">
+                <Stack gap={1}>
+                  <Text fontSize="sm" fontWeight="600">Nombre</Text>
+                  <Input
+                    placeholder="Ej: Celda Bariloche Norte"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    onBlur={validateEdit}
+                    {...inputStyle(!!editErrors.description)}
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleEdit()}
+                  />
+                  {editErrors.description && (
+                    <Text fontSize="xs" color="red.500">{editErrors.description}</Text>
+                  )}
+                </Stack>
+
+                <HStack gap={3} align="start">
+                  <Stack gap={1} flex={1}>
+                    <Text fontSize="sm" fontWeight="600">Latitud</Text>
+                    <Input
+                      placeholder="-41.1335"
+                      value={editLatitude}
+                      onChange={(e) => setEditLatitude(e.target.value)}
+                      onBlur={validateEdit}
+                      {...inputStyle(!!editErrors.latitude)}
+                    />
+                    {editErrors.latitude && (
+                      <Text fontSize="xs" color="red.500">{editErrors.latitude}</Text>
+                    )}
+                  </Stack>
+                  <Stack gap={1} flex={1}>
+                    <Text fontSize="sm" fontWeight="600">Longitud</Text>
+                    <Input
+                      placeholder="-71.3103"
+                      value={editLongitude}
+                      onChange={(e) => setEditLongitude(e.target.value)}
+                      onBlur={validateEdit}
+                      {...inputStyle(!!editErrors.longitude)}
+                    />
+                    {editErrors.longitude && (
+                      <Text fontSize="xs" color="red.500">{editErrors.longitude}</Text>
+                    )}
+                  </Stack>
+                </HStack>
+              </VStack>
+
+              <HStack gap={3} mt={6}>
+                <Button
+                  variant="ghost" flex={1}
+                  onClick={() => { setIsEditModalOpen(false); setEditingCelda(null); }}
+                  disabled={isEditing}
+                >
+                  Cancelar
+                </Button>
+                <MotionBox flex={1} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    w="full" bg="brand.black" color="white"
+                    onClick={handleEdit} loading={isEditing} disabled={isEditing}
+                    _hover={{ bg: 'gray.700' }}
+                  >
+                    Guardar
+                  </Button>
+                </MotionBox>
+              </HStack>
+            </Box>
+          </MotionBox>
+        </Box>
+      )}
+
+      {/* ── Modal: Confirmar Eliminación Individual ── */}
       {isDeleteModalOpen && selectedCelda && (
         <Box
           position="fixed" top={0} left={0} right={0} bottom={0}
@@ -435,7 +661,7 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Box bg="white" p={6} borderRadius="lg" boxShadow="xl" maxW="md" w="400px">
+            <Box bg="white" p={6} borderRadius="lg" boxShadow="xl" w="400px">
               <Flex align="center" gap={3} mb={4}>
                 <Box
                   bg="red.100" borderRadius="full" p={2}
@@ -474,6 +700,59 @@ const CeldasConfig = ({ celdas, onDelete, onCreate, sensoresDisponibles }: Celda
                     _hover={{ bg: 'red.600' }}
                   >
                     Eliminar
+                  </Button>
+                </MotionBox>
+              </HStack>
+            </Box>
+          </MotionBox>
+        </Box>
+      )}
+
+      {/* ── Modal: Confirmar Eliminación Masiva ── */}
+      {isBulkDeleteModalOpen && (
+        <Box
+          position="fixed" top={0} left={0} right={0} bottom={0}
+          bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center"
+          zIndex={1000}
+          onClick={() => !isBulkDeleting && setIsBulkDeleteModalOpen(false)}
+        >
+          <MotionBox
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Box bg="white" p={6} borderRadius="lg" boxShadow="xl" w="400px">
+              <Flex align="center" gap={3} mb={4}>
+                <Box
+                  bg="red.100" borderRadius="full" p={2}
+                  display="flex" alignItems="center" justifyContent="center"
+                >
+                  <FaExclamationTriangle color="#E53E3E" size={20} />
+                </Box>
+                <Text fontSize="lg" fontWeight="600">Eliminar {selectedIds.size} celda{selectedIds.size !== 1 ? 's' : ''}</Text>
+              </Flex>
+
+              <Text fontSize="sm" color="gray.600" mb={4}>
+                ¿Estás seguro que deseas eliminar las {selectedIds.size} celdas seleccionadas?
+                Esta acción no se puede deshacer.
+              </Text>
+
+              <HStack gap={3}>
+                <Button
+                  variant="ghost" flex={1}
+                  onClick={() => setIsBulkDeleteModalOpen(false)} disabled={isBulkDeleting}
+                >
+                  Cancelar
+                </Button>
+                <MotionBox flex={1} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    w="full" bg="red.500" color="white"
+                    onClick={handleBulkDelete} loading={isBulkDeleting} disabled={isBulkDeleting}
+                    _hover={{ bg: 'red.600' }}
+                  >
+                    Eliminar todas
                   </Button>
                 </MotionBox>
               </HStack>
