@@ -16,7 +16,7 @@ export interface Sensor {
   sensorHardwareRouteId: number;
   type: SensorType;
   pollingTimeInterval: number;
-  cellId: number;
+  cellId: number | null;
 }
 
 export interface Cell {
@@ -61,6 +61,7 @@ export type UpdateCellDto = {
   latitude: string;
   longitude: string;
   active: boolean;
+  sensors: Sensor[];
 };
 
 //

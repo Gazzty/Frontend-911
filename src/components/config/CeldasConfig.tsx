@@ -61,6 +61,8 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
   const [editLatitude, setEditLatitude] = useState('');
   const [editLongitude, setEditLongitude] = useState('');
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [editFormSensors, setEditFormSensors] = useState<ApiSensor[]>([]);
+  const [editSensorSelect, setEditSensorSelect] = useState('');
 
   // Checkbox helpers
   const allSelected = celdas.length > 0 && selectedIds.size === celdas.length;
@@ -180,7 +182,38 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
     setEditLatitude(String(celda.ubicacion.lat));
     setEditLongitude(String(celda.ubicacion.lng));
     setEditErrors({});
+    const currentSensors = sensoresDisponibles.filter((s) => s.cellId === celda.id);
+    setEditFormSensors(currentSensors);
+    const firstAvailable = sensoresDisponibles.find(
+      (s) => s.cellId == null && !currentSensors.some((cs) => cs.id === s.id),
+    );
+    setEditSensorSelect(firstAvailable != null ? String(firstAvailable.id) : '');
     setIsEditModalOpen(true);
+  };
+
+  const editAvailableSensors = sensoresDisponibles.filter(
+    (s) =>
+      (s.cellId == null || s.cellId === editingCelda?.id) &&
+      !editFormSensors.some((es) => es.id === s.id),
+  );
+
+  const addSensorToEdit = () => {
+    const id = parseInt(editSensorSelect);
+    if (isNaN(id) || editFormSensors.some((s) => s.id === id)) return;
+    const sensor = sensoresDisponibles.find((s) => s.id === id);
+    if (!sensor) return;
+    const updated = [...editFormSensors, sensor];
+    setEditFormSensors(updated);
+    const next = sensoresDisponibles.find(
+      (s) => (s.cellId == null || s.cellId === editingCelda?.id) && !updated.some((es) => es.id === s.id),
+    );
+    setEditSensorSelect(next != null ? String(next.id) : '');
+  };
+
+  const removeSensorFromEdit = (id: number) => {
+    const updated = editFormSensors.filter((s) => s.id !== id);
+    setEditFormSensors(updated);
+    if (!editSensorSelect) setEditSensorSelect(String(id));
   };
 
   const handleEdit = async () => {
@@ -193,6 +226,14 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
         latitude: editLatitude,
         longitude: editLongitude,
         active: editingCelda.activa,
+        sensors: editFormSensors.map((s) => ({
+          id: s.id,
+          active: s.active,
+          sensorHardwareRouteId: s.sensorHardwareRouteId,
+          type: s.type,
+          pollingTimeInterval: s.pollingTimeInterval,
+          cellId: editingCelda.id,
+        })),
       });
       setIsEditModalOpen(false);
       setEditingCelda(null);
@@ -307,7 +348,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
               )}
               <MotionBox whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
-                  size="sm" bg="brand.black" color="white"
+                  size="sm" bg="brand.black" color="white" px={4}
                   onClick={handleOpenCreateModal} _hover={{ bg: 'gray.700' }}
                 >
                   <FaPlus />
@@ -621,6 +662,74 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                     )}
                   </Stack>
                 </HStack>
+
+                {/* Sensores */}
+                <Stack gap={2}>
+                  <Text fontSize="sm" fontWeight="600">Sensores</Text>
+                  <HStack gap={2}>
+                    <Box flex={1}>
+                      <select
+                        value={editSensorSelect}
+                        onChange={(e) => setEditSensorSelect(e.target.value)}
+                        disabled={editAvailableSensors.length === 0}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: '#EDF2F7',
+                          fontSize: '14px',
+                          cursor: editAvailableSensors.length === 0 ? 'not-allowed' : 'pointer',
+                          outline: 'none',
+                          color: '#1A202C',
+                        }}
+                      >
+                        {editAvailableSensors.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            Sensor {s.id}
+                          </option>
+                        ))}
+                        {editAvailableSensors.length === 0 && (
+                          <option>Sin sensores disponibles</option>
+                        )}
+                      </select>
+                    </Box>
+                    <Button
+                      size="sm" bg="brand.black" color="white"
+                      onClick={addSensorToEdit}
+                      disabled={editAvailableSensors.length === 0 || isEditing}
+                      _hover={{ bg: 'gray.700' }}
+                    >
+                      <FaPlus />
+                    </Button>
+                  </HStack>
+
+                  {editFormSensors.length > 0 ? (
+                    <VStack gap={1} align="stretch">
+                      {editFormSensors.map((s) => (
+                        <HStack
+                          key={s.id}
+                          bg="gray.100" px={3} py={1.5} borderRadius="md"
+                          justify="space-between"
+                        >
+                          <HStack gap={2}>
+                            <FaMicrochip size={12} color="#718096" />
+                            <Text fontSize="sm">Sensor {s.id}</Text>
+                          </HStack>
+                          <IconButton
+                            aria-label="Quitar sensor" size="xs"
+                            variant="ghost" colorPalette="red"
+                            onClick={() => removeSensorFromEdit(s.id)}
+                          >
+                            <FaTimes size={10} />
+                          </IconButton>
+                        </HStack>
+                      ))}
+                    </VStack>
+                  ) : (
+                    <Text fontSize="xs" color="gray.400">Sin sensores asignados.</Text>
+                  )}
+                </Stack>
               </VStack>
 
               <HStack gap={3} mt={6}>
