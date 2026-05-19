@@ -164,7 +164,7 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
         boxShadow="sm"
         borderWidth="1px"
         borderColor="gray.200"
-        h="600px"
+        h={{ base: '320px', md: '450px', lg: '600px' }}
       >
         <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
       </Box>

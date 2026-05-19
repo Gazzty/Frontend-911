@@ -1,4 +1,4 @@
-import { Box, Text } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import type { ElementType } from 'react';
 
 interface ConfigTabButtonProps {
@@ -11,20 +11,23 @@ interface ConfigTabButtonProps {
 const ConfigTabButton = ({ icon: Icon, label, isActive, onClick }: ConfigTabButtonProps) => {
   return (
     <Box
-      px={4}
+      as="button"
+      title={label}
+      aria-label={label}
+      px={3}
       py={2}
       bg={isActive ? 'gray.100' : 'transparent'}
-      fontWeight={isActive ? '600' : '400'}
       borderRadius="md"
       cursor="pointer"
       onClick={onClick}
-      transition="all 0.3s ease"
+      transition="all 0.2s ease"
       display="flex"
       alignItems="center"
-      gap={2}
+      justifyContent="center"
+      color={isActive ? 'brand.black' : 'gray.400'}
+      _hover={{ bg: 'gray.100', color: 'brand.black' }}
     >
-      <Icon />
-      <Text fontSize="sm">{label}</Text>
+      <Icon size={18} />
     </Box>
   );
 };

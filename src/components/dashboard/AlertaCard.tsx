@@ -41,7 +41,12 @@ const AlertaCard = ({ alerta, index }: AlertaCardProps) => {
           borderColor: 'red.300',
         }}
       >
-        <Flex align="center" justify="space-between">
+        <Flex
+          align={{ base: 'flex-start', sm: 'center' }}
+          justify="space-between"
+          direction={{ base: 'column', sm: 'row' }}
+          gap={{ base: 2, sm: 0 }}
+        >
           <HStack gap={3} flex={1}>
             <Box
               bg="red.500"
@@ -50,6 +55,7 @@ const AlertaCard = ({ alerta, index }: AlertaCardProps) => {
               display="flex"
               alignItems="center"
               justifyContent="center"
+              flexShrink={0}
             >
               <FaExclamationTriangle color="white" size={16} />
             </Box>
@@ -62,8 +68,8 @@ const AlertaCard = ({ alerta, index }: AlertaCardProps) => {
               </Text>
             </VStack>
           </HStack>
-          <Text fontSize="sm" fontWeight="600" color="red.700">
-            Temperatura crítica detectada: {alerta.temperatura}°C
+          <Text fontSize="sm" fontWeight="600" color="red.700" flexShrink={0}>
+            Temp. crítica: {alerta.temperatura}°C
           </Text>
         </Flex>
       </Box>

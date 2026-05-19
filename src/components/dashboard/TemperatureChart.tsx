@@ -79,11 +79,11 @@ const TemperatureChart = ({ data, celdas }: TemperatureChartProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      h="450px"
+      h={{ base: '320px', md: '380px', lg: '450px' }}
     >
       <Box
         bg="white"
-        p={6}
+        p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
@@ -92,8 +92,8 @@ const TemperatureChart = ({ data, celdas }: TemperatureChartProps) => {
         display="flex"
         flexDirection="column"
       >
-        <HStack justify="space-between" mb={6}>
-          <Text fontSize="lg" fontWeight="600">
+        <HStack justify="space-between" mb={{ base: 3, md: 6 }} flexWrap="wrap" gap={2}>
+          <Text fontSize={{ base: 'md', md: 'lg' }} fontWeight="600">
             Mediciones de Temperatura
           </Text>
           <HStack gap={0}>

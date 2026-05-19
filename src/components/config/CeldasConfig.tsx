@@ -445,8 +445,8 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             onClick={(e) => e.stopPropagation()}
           >
             <Box
-              bg="white" p={6} borderRadius="lg" boxShadow="xl"
-              w="520px" maxH="90vh" overflowY="auto"
+              bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
+              w={{ base: '95vw', md: '520px' }} maxH="90vh" overflowY="auto"
             >
               <Text fontSize="lg" fontWeight="600" mb={5}>Crear Nueva Celda</Text>
 
@@ -612,8 +612,8 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             onClick={(e) => e.stopPropagation()}
           >
             <Box
-              bg="white" p={6} borderRadius="lg" boxShadow="xl"
-              w="460px" maxH="90vh" overflowY="auto"
+              bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
+              w={{ base: '95vw', md: '520px' }} maxH="90vh" overflowY="auto"
             >
               <Text fontSize="lg" fontWeight="600" mb={5}>Editar Celda</Text>
 
@@ -770,7 +770,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Box bg="white" p={6} borderRadius="lg" boxShadow="xl" w="400px">
+            <Box bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
               <Flex align="center" gap={3} mb={4}>
                 <Box
                   bg="red.100" borderRadius="full" p={2}
@@ -832,7 +832,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Box bg="white" p={6} borderRadius="lg" boxShadow="xl" w="400px">
+            <Box bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
               <Flex align="center" gap={3} mb={4}>
                 <Box
                   bg="red.100" borderRadius="full" p={2}
