@@ -38,7 +38,12 @@ function cellToCelda(cell: Cell): Celda {
     activa: cell.active,
     sensores: cell.sensors
       .filter((s) => s.active)
-      .map((s) => ({ id: s.id ?? 0, temperatura: 0, enFuego: false })),
+      .map((s) => ({
+        id: s.id ?? 0,
+        temperatura: 0,
+        enFuego: false,
+        tipo: s.type?.id === 2 ? 'fuego' : 'temperatura',
+      })),
     ubicacion: {
       lat: parseFloat(cell.latitude),
       lng: parseFloat(cell.longitude),
@@ -106,6 +111,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
+          if (sensor.tipo === 'fuego') {
+            const valor = (medicion.pollingValue ?? '').trim();
+            return { ...sensor, enFuego: valor !== '0' && valor !== '' };
+          }
           const temp = parseFloat((medicion.pollingValue ?? '').trim());
           return {
             ...sensor,

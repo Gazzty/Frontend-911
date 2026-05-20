@@ -521,7 +521,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       >
                         {availableSensors.map((s) => (
                           <option key={s.id} value={s.id}>
-                            Sensor {s.id}
+                            Sensor {s.id} — {s.type.description}
                           </option>
                         ))}
                         {availableSensors.length === 0 && (
@@ -541,25 +541,33 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
 
                   {formSensores.length > 0 && (
                     <VStack gap={1} align="stretch">
-                      {formSensores.map((s) => (
-                        <HStack
-                          key={s.sensorId}
-                          bg="gray.100" px={3} py={1.5} borderRadius="md"
-                          justify="space-between"
-                        >
-                          <HStack gap={2}>
-                            <FaMicrochip size={12} color="#718096" />
-                            <Text fontSize="sm">Sensor {s.sensorId}</Text>
-                          </HStack>
-                          <IconButton
-                            aria-label="Quitar sensor" size="xs"
-                            variant="ghost" colorPalette="red"
-                            onClick={() => removeSensor(s.sensorId)}
+                      {formSensores.map((s) => {
+                        const full = sensoresDisponibles.find((sd) => sd.id === s.sensorId);
+                        return (
+                          <HStack
+                            key={s.sensorId}
+                            bg="gray.100" px={3} py={1.5} borderRadius="md"
+                            justify="space-between"
                           >
-                            <FaTimes size={10} />
-                          </IconButton>
-                        </HStack>
-                      ))}
+                            <HStack gap={2}>
+                              <FaMicrochip size={12} color="#718096" />
+                              <VStack align="start" gap={0}>
+                                <Text fontSize="sm">Sensor {s.sensorId}</Text>
+                                {full && (
+                                  <Text fontSize="xs" color="gray.500">{full.type.description}</Text>
+                                )}
+                              </VStack>
+                            </HStack>
+                            <IconButton
+                              aria-label="Quitar sensor" size="xs"
+                              variant="ghost" colorPalette="red"
+                              onClick={() => removeSensor(s.sensorId)}
+                            >
+                              <FaTimes size={10} />
+                            </IconButton>
+                          </HStack>
+                        );
+                      })}
                     </VStack>
                   )}
 
@@ -686,7 +694,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       >
                         {editAvailableSensors.map((s) => (
                           <option key={s.id} value={s.id}>
-                            Sensor {s.id}
+                            Sensor {s.id} — {s.type.description}
                           </option>
                         ))}
                         {editAvailableSensors.length === 0 && (
@@ -714,7 +722,10 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                         >
                           <HStack gap={2}>
                             <FaMicrochip size={12} color="#718096" />
-                            <Text fontSize="sm">Sensor {s.id}</Text>
+                            <VStack align="start" gap={0}>
+                              <Text fontSize="sm">Sensor {s.id}</Text>
+                              <Text fontSize="xs" color="gray.500">{s.type.description}</Text>
+                            </VStack>
                           </HStack>
                           <IconButton
                             aria-label="Quitar sensor" size="xs"
