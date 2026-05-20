@@ -1,4 +1,29 @@
 import type { Celda, DashboardStats, TemperatureReading, Config } from '../types';
+import { getAllSettings, updateSetting } from '../api/settingsApi';
+
+const SETTING_CODES = {
+  TEMPERATURA_UMBRAL: 'TempMax',
+  INTERVALO_MEDICION: 'IntervalPollingDefault',
+  NOTIF_EMAIL: 'EmailsNotification',
+  NOTIF_EMAIL_DIRECCION: 'Emails',
+  NOTIF_WHATSAPP: 'WhatsappNotification',
+  NOTIF_SMS: 'SMSNotification',
+  NOTIF_TELEFONO: 'PhoneNumber',
+} as const;
+
+const DEFAULT_CONFIG: Config = {
+  umbrales: {
+    temperatura: 50,
+    intervaloMedicion: 10,
+  },
+  notificaciones: {
+    email: false,
+    emailDireccion: '',
+    whatsapp: false,
+    sms: false,
+    telefono: '',
+  },
+};
 
 const generateMockCeldas = (): Celda[] => {
   return [
@@ -181,25 +206,34 @@ export const dataService = {
   },
 
   getConfig: async (): Promise<Config> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    const settings = await getAllSettings();
+    const map = new Map(settings.map((s) => [s.code, s.value]));
+
     return {
       umbrales: {
-        temperatura: 50,
-        intervaloMedicion: 10,
+        temperatura: Number(map.get(SETTING_CODES.TEMPERATURA_UMBRAL) ?? DEFAULT_CONFIG.umbrales.temperatura),
+        intervaloMedicion: Number(map.get(SETTING_CODES.INTERVALO_MEDICION) ?? DEFAULT_CONFIG.umbrales.intervaloMedicion),
       },
       notificaciones: {
-        email: true,
-        emailDireccion: 'abc@mail.com',
-        whatsapp: false,
-        sms: false,
-        telefono: '+54 9 11 1234-5678',
+        email: map.get(SETTING_CODES.NOTIF_EMAIL) === 'true',
+        emailDireccion: map.get(SETTING_CODES.NOTIF_EMAIL_DIRECCION) ?? DEFAULT_CONFIG.notificaciones.emailDireccion,
+        whatsapp: map.get(SETTING_CODES.NOTIF_WHATSAPP) === 'true',
+        sms: map.get(SETTING_CODES.NOTIF_SMS) === 'true',
+        telefono: map.get(SETTING_CODES.NOTIF_TELEFONO) ?? DEFAULT_CONFIG.notificaciones.telefono,
       },
     };
   },
 
   updateConfig: async (config: Config): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('Config actualizada:', config);
+    await Promise.all([
+      updateSetting({ code: SETTING_CODES.TEMPERATURA_UMBRAL, summary: 'Temperatura umbral de alerta (°C)', value: String(config.umbrales.temperatura) }),
+      updateSetting({ code: SETTING_CODES.INTERVALO_MEDICION, summary: 'Intervalo de medición de sensores (segundos)', value: String(config.umbrales.intervaloMedicion) }),
+      updateSetting({ code: SETTING_CODES.NOTIF_EMAIL, summary: 'Notificaciones por email activadas', value: String(config.notificaciones.email) }),
+      updateSetting({ code: SETTING_CODES.NOTIF_EMAIL_DIRECCION, summary: 'Dirección de email para notificaciones', value: config.notificaciones.emailDireccion }),
+      updateSetting({ code: SETTING_CODES.NOTIF_WHATSAPP, summary: 'Notificaciones por WhatsApp activadas', value: String(config.notificaciones.whatsapp) }),
+      updateSetting({ code: SETTING_CODES.NOTIF_SMS, summary: 'Notificaciones por SMS activadas', value: String(config.notificaciones.sms) }),
+      updateSetting({ code: SETTING_CODES.NOTIF_TELEFONO, summary: 'Número de teléfono para notificaciones', value: config.notificaciones.telefono }),
+    ]);
   },
 
   deleteCelda: async (id: number): Promise<void> => {

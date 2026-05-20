@@ -136,10 +136,6 @@ const UmbralesConfig = ({
     Number(tempValue) !== initialTemp || 
     Number(intervaloValue) !== initialIntervalo;
 
-  console.log('tempValue:', tempValue, 'initialTemp:', initialTemp);
-  console.log('intervaloValue:', intervaloValue, 'initialIntervalo:', initialIntervalo);
-  console.log('hasChanges:', hasChanges);
-
   return (
     <MotionBox
       initial={{ opacity: 0, y: 20 }}
