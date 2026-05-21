@@ -155,8 +155,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     setCeldas(celdasActualizadas);
   }, []);
 
-  const hasReceivedInitialDataRef = useRef(false);
-
   const procesarBuffer = useCallback(() => {
     const buffer = bufferRef.current;
     if (buffer.length === 0) return;
@@ -169,18 +167,17 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     actualizarCeldas(buffer);
   }, [actualizarCeldas]);
 
-  // Escuchar mensajes del WebSocket y acumularlos en el buffer
+  // Escuchar mensajes del WebSocket y procesar inmediatamente
   useEffect(() => {
     websocketService.start();
 
     const unsubMessage = websocketService.onMessage((nuevasMediciones) => {
       bufferRef.current = [...bufferRef.current, ...nuevasMediciones];
 
-      // Procesar inmediatamente solo si las celdas ya están cargadas.
+      // Procesar solo si las celdas ya están cargadas.
       // Si aún no cargaron, el dato queda en el buffer y se procesa
       // cuando getCellsFull resuelve (ver el useEffect de carga).
-      if (!hasReceivedInitialDataRef.current && celdasRef.current.length > 0) {
-        hasReceivedInitialDataRef.current = true;
+      if (celdasRef.current.length > 0) {
         procesarBuffer();
       }
     });
@@ -193,17 +190,8 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       unsubMessage();
       unsubStatus();
       websocketService.stop();
-      hasReceivedInitialDataRef.current = false;
     };
   }, [procesarBuffer]);
-
-  // Procesar el buffer al ritmo del intervalo configurado
-  useEffect(() => {
-    const intervalMs = intervaloMedicion * 1000;
-    const intervalId = setInterval(procesarBuffer, intervalMs);
-
-    return () => clearInterval(intervalId);
-  }, [intervaloMedicion, procesarBuffer]);
 
   return (
     <SensorDataContext.Provider
