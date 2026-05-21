@@ -1,15 +1,24 @@
 import {
-  addSetting,
   getAllSettings,
   getSetting,
-  updateSetting,
+
+  updateTempMax,
+  updatePollingInterval,
+  updateEmails,
+  updateEmailNotifications,
+  updateWhatsappNotifications,
+  updateSMSNotifications,
+  updatePhoneNumber,
+
 } from "./settingsApi";
 
 // RUN:
 // npx tsx src/api/testSettingsApi.ts
 
 async function runTest() {
+
   try {
+
     console.log("🚀 Iniciando test Settings API...\n");
 
     //
@@ -17,94 +26,135 @@ async function runTest() {
     //
     console.log("1) Getting all settings...");
 
-    const settings = await getAllSettings();
+    const initialSettings = await getAllSettings();
+    const initialCount = initialSettings.length;
 
-    console.log(`✅ Settings found: ${settings.length}`);
-    console.log(settings);
+    console.log(`✅ Settings found: ${initialCount}`);
+    console.log(initialSettings);
     console.log();
 
     //
-    // 2️⃣ GET SINGLE SETTING
+    // 2️⃣ UPDATE SETTINGS
     //
-    if (settings.length > 0) {
-      const firstCode = settings[0].code;
+    console.log("2) Updating settings...");
 
-      console.log(`2) Getting setting: ${firstCode}`);
+    await updateTempMax("45");
 
-      const setting = await getSetting(firstCode);
+    await updatePollingInterval("15");
 
-      console.log("✅ Setting found:");
-      console.log(setting);
-      console.log();
+    await updateEmails("updated@admin.com");
+
+    await updateEmailNotifications("false");
+
+    await updateWhatsappNotifications("true");
+
+    await updateSMSNotifications("true");
+
+    await updatePhoneNumber("987654321");
+
+    console.log("✅ Settings updated\n");
+
+    //
+    // 3️⃣ VALIDATE COUNT
+    //
+    console.log("3) Validating settings count...");
+
+    const finalSettings = await getAllSettings();
+    const finalCount = finalSettings.length;
+
+    console.log(`✅ Final settings count: ${finalCount}`);
+
+    //
+    // Updates should NOT create new rows
+    //
+    if (finalCount !== initialCount) {
+
+      throw new Error(
+        `Inconsistent count after update. Expected ${initialCount}, got ${finalCount}`
+      );
+
     }
 
-    //
-    // 3️⃣ ADD SETTING
-    //
-    const testCode = `TestSetting-${Date.now()}`;
-
-    console.log("3) Adding setting...");
-
-    await addSetting({
-      code: testCode,
-      summary: "Test setting created from frontend",
-      value: JSON.stringify({
-        createdAt: new Date().toISOString(),
-        active: true,
-      }),
-    });
-
-    console.log("✅ Setting added\n");
+    console.log("✅ Count consistency OK\n");
 
     //
-    // 4️⃣ GET NEW SETTING
+    // 4️⃣ VALIDATE UPDATED VALUES
     //
-    console.log("4) Getting newly created setting...");
+    console.log("4) Validating updated values...\n");
 
-    const createdSetting = await getSetting(testCode);
+    const tempMax = await getSetting("TempMax");
 
-    console.log("✅ Created setting:");
-    console.log(createdSetting);
+    console.log("TempMax:", tempMax);
 
-    try {
-      console.log("Parsed JSON:");
-      console.log(JSON.parse(createdSetting.value));
-    } catch {
-      console.log("Value is not JSON");
+    if (tempMax.value !== "45") {
+      throw new Error("TempMax update failed");
     }
 
-    console.log();
+    const polling = await getSetting(
+      "IntervalPollingDefault"
+    );
 
-    //
-    // 5️⃣ UPDATE SETTING
-    //
-    console.log("5) Updating setting...");
+    console.log("Polling:", polling);
 
-    await updateSetting({
-      ...createdSetting,
-      value: JSON.stringify({
-        updatedAt: new Date().toISOString(),
-        active: false,
-      }),
-    });
+    if (polling.value !== "15") {
+      throw new Error("Polling update failed");
+    }
 
-    console.log("✅ Setting updated\n");
+    const emails = await getSetting("Emails");
 
-    //
-    // 6️⃣ VALIDATE UPDATE
-    //
-    console.log("6) Validating updated setting...");
+    console.log("Emails:", emails);
 
-    const updatedSetting = await getSetting(testCode);
+    if (emails.value !== "updated@admin.com") {
+      throw new Error("Emails update failed");
+    }
 
-    console.log("✅ Updated setting:");
-    console.log(updatedSetting);
+    const emailNotifications = await getSetting(
+      "EmailsNotification"
+    );
 
-    try {
-      console.log("Parsed JSON:");
-      console.log(JSON.parse(updatedSetting.value));
-    } catch {
-      console.log("Value is not JSON");
+    console.log(
+      "Email notifications:",
+      emailNotifications
+    );
+
+    if (emailNotifications.value !== "false") {
+      throw new Error(
+        "Email notifications update failed"
+      );
+    }
+
+    const whatsapp = await getSetting(
+      "WhatsappNotification"
+    );
+
+    console.log("WhatsApp:", whatsapp);
+
+    if (whatsapp.value !== "true") {
+      throw new Error(
+        "WhatsApp notifications update failed"
+      );
+    }
+
+    const sms = await getSetting(
+      "SMSNotification"
+    );
+
+    console.log("SMS:", sms);
+
+    if (sms.value !== "true") {
+      throw new Error(
+        "SMS notifications update failed"
+      );
+    }
+
+    const phone = await getSetting(
+      "PhoneNumber"
+    );
+
+    console.log("Phone:", phone);
+
+    if (phone.value !== "987654321") {
+      throw new Error("Phone update failed");
     }
 
     console.log();
@@ -113,10 +163,16 @@ async function runTest() {
     // DONE
     //
     console.log("🎉 Test Settings completo OK");
+
   } catch (error) {
-    console.error("❌ Error en test Settings:", error);
+
+    console.error(
+      "❌ Error en test Settings:",
+      error
+    );
+
   }
+
 }
 
 runTest();
-

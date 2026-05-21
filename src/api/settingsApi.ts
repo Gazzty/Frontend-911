@@ -27,7 +27,7 @@ const handleResponse = <T>(
 };
 
 //
-// 🌐 Endpoints
+// 🌐 Generic Endpoints
 //
 
 // 1️⃣ GET /Settings/Get-all
@@ -80,3 +80,160 @@ export const updateSetting = async (
   handleResponse(res, "Error updating setting");
 };
 
+//
+// 🧩 Specific Helpers
+//
+
+// ================= TEMP MAX =================
+
+// export const createTempMax = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "TempMax",
+//     summary: "Temperatura umbral de alerta (°C)",
+//     value,
+//   });
+// };
+
+export const updateTempMax = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "TempMax",
+    summary: "Temperatura umbral de alerta (°C)",
+    value,
+  });
+};
+
+// ================= POLLING =================
+
+// export const createPollingInterval = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "IntervalPollingDefault",
+//     summary: "Intervalo de medición de sensores (segundos)",
+//     value,
+//   });
+// };
+
+export const updatePollingInterval = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "IntervalPollingDefault",
+    summary: "Intervalo de medición de sensores (segundos)",
+    value,
+  });
+};
+
+// ================= EMAILS =================
+
+// export const createEmails = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "Emails",
+//     summary: "Dirección de email para notificaciones",
+//     value,
+//   });
+// };
+
+export const updateEmails = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "Emails",
+    summary: "Dirección de email para notificaciones",
+    value,
+  });
+};
+
+// ================= EMAIL NOTIFICATIONS =================
+
+// export const createEmailNotifications = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "EmailsNotification",
+//     summary: "Notificaciones por email activadas",
+//     value,
+//   });
+// };
+
+export const updateEmailNotifications = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "EmailsNotification",
+    summary: "Notificaciones por email activadas",
+    value,
+  });
+};
+
+// ================= WHATSAPP =================
+
+// export const createWhatsappNotifications = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "WhatsappNotification",
+//     summary: "Notificaciones por WhatsApp activadas",
+//     value,
+//   });
+// };
+
+export const updateWhatsappNotifications = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "WhatsappNotification",
+    summary: "Notificaciones por WhatsApp activadas",
+    value,
+  });
+};
+
+// ================= SMS =================
+
+// export const createSMSNotifications = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "SMSNotification",
+//     summary: "Notificaciones por SMS activadas",
+//     value,
+//   });
+// };
+
+export const updateSMSNotifications = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "SMSNotification",
+    summary: "Notificaciones por SMS activadas",
+    value,
+  });
+};
+
+// ================= PHONE =================
+
+// export const createPhoneNumber = async (
+//   value: string
+// ): Promise<void> => {
+//   await addSetting({
+//     code: "PhoneNumber",
+//     summary: "Número de teléfono para notificaciones",
+//     value,
+//   });
+// };
+
+export const updatePhoneNumber = async (
+  value: string
+): Promise<void> => {
+  await updateSetting({
+    code: "PhoneNumber",
+    summary: "Número de teléfono para notificaciones",
+    value,
+  });
+};
