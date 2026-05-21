@@ -139,15 +139,13 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
 
       marker.bindPopup(popupContent)
 
-      // Alert ring
-      if (hasAlert) {
-        L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
-          radius: 22,
-          color: '#FF4500',
-          fillColor: '#FF4500',
-          fillOpacity: 0.15,
-        }).addTo(map)
-      }
+      // Status ring
+      L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
+        radius: 22,
+        color: hasAlert ? '#FF4500' : '#51CF66',
+        fillColor: hasAlert ? '#FF4500' : '#51CF66',
+        fillOpacity: 0.15,
+      }).addTo(map)
 
       markersRef.current[celda.id] = marker
     })
