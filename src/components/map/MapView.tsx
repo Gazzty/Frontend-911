@@ -36,6 +36,7 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Record<number, L.Marker>>({})
+  const ringsRef = useRef<Record<number, L.CircleMarker>>({})
 
   useImperativeHandle(ref, () => ({
     focusOnCelda: (celda: Celda) => {
@@ -85,14 +86,16 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
     const map = mapInstanceRef.current
     if (!map) return
 
-    // Remove old markers
+    // Remove old markers and rings
     Object.values(markersRef.current).forEach((m) => m.remove())
+    Object.values(ringsRef.current).forEach((r) => r.remove())
     markersRef.current = {}
+    ringsRef.current = {}
 
     // Add new markers
     celdas.forEach((celda) => {
-      const sensor = celda.sensores[0]
-      const hasAlert = sensor ? sensor.enFuego : false
+      const hasAlert = celda.sensores.some((s) => s.enFuego)
+      const tempSensor = celda.sensores.find((s) => s.tipo === 'temperatura')
 
       const marker = L.marker([celda.ubicacion.lat, celda.ubicacion.lng], {
         icon: crearIconoCelda(hasAlert),
@@ -104,10 +107,11 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
             ${celda.nombre}
           </h3>
           <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${tempSensor ? `
             <div style="display: flex; justify-content: space-between; font-size: 14px;">
               <span style="color: #6B6B6B;">Temperatura:</span>
-              <span style="font-weight: 600;">${sensor ? sensor.temperatura : 0}°C</span>
-            </div>
+              <span style="font-weight: 600;">${tempSensor.temperatura}°C</span>
+            </div>` : ''}
             <div style="display: flex; justify-content: space-between; font-size: 14px;">
               <span style="color: #6B6B6B;">Estado Red:</span>
               <span style="font-weight: 600; color: ${celda.activa ? '#51CF66' : '#6B6B6B'};">
@@ -117,9 +121,9 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
             ${
               hasAlert
                 ? `<div style="margin-top: 8px; padding: 8px; background: #FEE; border-radius: 6px; border-left: 3px solid #FF4500;">
-                    <div style="font-weight: 600; color: #C53030; font-size: 14px;">⚠️ FUEGO</div>
+                    <div style="font-weight: 600; color: #C53030; font-size: 14px;">⚠️ ALERTA</div>
                     <div style="font-size: 13px; color: #E53E3E; margin-top: 4px;">
-                      Temperatura crítica detectada
+                      Alerta de incendio detectada
                     </div>
                   </div>`
                 : `<div style="margin-top: 8px; padding: 8px; background: #F0FFF4; border-radius: 6px; border-left: 3px solid #51CF66;">
@@ -138,15 +142,14 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
 
       marker.bindPopup(popupContent)
 
-      // Alert ring
-      if (hasAlert) {
-        L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
-          radius: 22,
-          color: '#FF4500',
-          fillColor: '#FF4500',
-          fillOpacity: 0.15,
-        }).addTo(map)
-      }
+      // Status ring
+      const ring = L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
+        radius: 22,
+        color: hasAlert ? '#FF4500' : '#51CF66',
+        fillColor: hasAlert ? '#FF4500' : '#51CF66',
+        fillOpacity: 0.15,
+      }).addTo(map)
+      ringsRef.current[celda.id] = ring
 
       markersRef.current[celda.id] = marker
     })

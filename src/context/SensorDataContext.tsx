@@ -38,7 +38,12 @@ function cellToCelda(cell: Cell): Celda {
     activa: cell.active,
     sensores: cell.sensors
       .filter((s) => s.active)
-      .map((s) => ({ id: s.id ?? 0, temperatura: 0, enFuego: false })),
+      .map((s) => ({
+        id: s.id ?? 0,
+        temperatura: 0,
+        enFuego: false,
+        tipo: s.type?.id === 2 ? 'fuego' : 'temperatura',
+      })),
     ubicacion: {
       lat: parseFloat(cell.latitude),
       lng: parseFloat(cell.longitude),
@@ -106,6 +111,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
           celdaModificada = true;
+          if (sensor.tipo === 'fuego') {
+            const valor = (medicion.pollingValue ?? '').trim();
+            return { ...sensor, enFuego: valor !== '0' && valor !== '' };
+          }
           const temp = parseFloat((medicion.pollingValue ?? '').trim());
           return {
             ...sensor,
@@ -146,8 +155,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     setCeldas(celdasActualizadas);
   }, []);
 
-  const hasReceivedInitialDataRef = useRef(false);
-
   const procesarBuffer = useCallback(() => {
     const buffer = bufferRef.current;
     if (buffer.length === 0) return;
@@ -160,18 +167,17 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     actualizarCeldas(buffer);
   }, [actualizarCeldas]);
 
-  // Escuchar mensajes del WebSocket y acumularlos en el buffer
+  // Escuchar mensajes del WebSocket y procesar inmediatamente
   useEffect(() => {
     websocketService.start();
 
     const unsubMessage = websocketService.onMessage((nuevasMediciones) => {
       bufferRef.current = [...bufferRef.current, ...nuevasMediciones];
 
-      // Procesar inmediatamente solo si las celdas ya están cargadas.
+      // Procesar solo si las celdas ya están cargadas.
       // Si aún no cargaron, el dato queda en el buffer y se procesa
       // cuando getCellsFull resuelve (ver el useEffect de carga).
-      if (!hasReceivedInitialDataRef.current && celdasRef.current.length > 0) {
-        hasReceivedInitialDataRef.current = true;
+      if (celdasRef.current.length > 0) {
         procesarBuffer();
       }
     });
@@ -184,17 +190,8 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       unsubMessage();
       unsubStatus();
       websocketService.stop();
-      hasReceivedInitialDataRef.current = false;
     };
   }, [procesarBuffer]);
-
-  // Procesar el buffer al ritmo del intervalo configurado
-  useEffect(() => {
-    const intervalMs = intervaloMedicion * 1000;
-    const intervalId = setInterval(procesarBuffer, intervalMs);
-
-    return () => clearInterval(intervalId);
-  }, [intervaloMedicion, procesarBuffer]);
 
   return (
     <SensorDataContext.Provider

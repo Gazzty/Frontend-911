@@ -19,6 +19,7 @@ export interface Sensor {
   id: number;
   temperatura: number;
   enFuego: boolean;
+  tipo: 'temperatura' | 'fuego';
 }
 
 export interface DashboardStats {
