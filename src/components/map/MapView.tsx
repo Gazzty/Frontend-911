@@ -36,6 +36,7 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Record<number, L.Marker>>({})
+  const ringsRef = useRef<Record<number, L.CircleMarker>>({})
 
   useImperativeHandle(ref, () => ({
     focusOnCelda: (celda: Celda) => {
@@ -85,9 +86,11 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
     const map = mapInstanceRef.current
     if (!map) return
 
-    // Remove old markers
+    // Remove old markers and rings
     Object.values(markersRef.current).forEach((m) => m.remove())
+    Object.values(ringsRef.current).forEach((r) => r.remove())
     markersRef.current = {}
+    ringsRef.current = {}
 
     // Add new markers
     celdas.forEach((celda) => {
@@ -140,12 +143,13 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
       marker.bindPopup(popupContent)
 
       // Status ring
-      L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
+      const ring = L.circleMarker([celda.ubicacion.lat, celda.ubicacion.lng], {
         radius: 22,
         color: hasAlert ? '#FF4500' : '#51CF66',
         fillColor: hasAlert ? '#FF4500' : '#51CF66',
         fillOpacity: 0.15,
       }).addTo(map)
+      ringsRef.current[celda.id] = ring
 
       markersRef.current[celda.id] = marker
     })
