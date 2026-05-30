@@ -20,7 +20,7 @@ const StatCard = ({ title, value, subtitle, delay = 0 }: StatCardProps) => {
     >
       <Box
         bg="white"
-        p={6}
+        p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
@@ -31,7 +31,7 @@ const StatCard = ({ title, value, subtitle, delay = 0 }: StatCardProps) => {
           <Text fontSize="sm" color="gray.500" fontWeight="600">
             {title}
           </Text>
-          <Text fontSize="3xl" fontWeight="700" color="brand.black">
+          <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="700" color="brand.black">
             {value}
           </Text>
           <Text fontSize="sm" color="gray.500">

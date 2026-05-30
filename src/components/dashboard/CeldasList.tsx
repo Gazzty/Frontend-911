@@ -15,11 +15,11 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      h="450px"
+      h={{ base: '320px', md: '380px', lg: '450px' }}
     >
       <Box
         bg="white"
-        p={6}
+        p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
@@ -29,7 +29,7 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
         display="flex"
         flexDirection="column"
       >
-        <Text fontSize="lg" fontWeight="600" mb={4}>
+        <Text fontSize={{ base: 'md', md: 'lg' }} fontWeight="600" mb={4}>
           Estado de las celdas
         </Text>
 

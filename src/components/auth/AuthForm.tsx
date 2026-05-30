@@ -101,7 +101,7 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
         >
           <Box
             bg="white"
-            p={10}
+            p={{ base: 6, md: 10 }}
             borderRadius="xl"
             boxShadow="xl"
             borderWidth="1px"

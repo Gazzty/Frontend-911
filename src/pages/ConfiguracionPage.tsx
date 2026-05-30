@@ -189,7 +189,7 @@ const ConfiguracionPage = () => {
     return (
       <>
         <Navbar />
-        <Box maxW="1300px" mx="auto" px={12} py={8}>
+        <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
           <Text>Cargando...</Text>
         </Box>
       </>
@@ -205,7 +205,7 @@ const ConfiguracionPage = () => {
   return (
     <>
       <Navbar />
-      <Box maxW="1300px" mx="auto" px={12} py={8}>
+      <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
         <VStack gap={6} align="stretch">
           <Box>
             <Text fontSize="2xl" fontWeight="700" mb={1}>
@@ -225,7 +225,7 @@ const ConfiguracionPage = () => {
               borderWidth="1px"
               borderColor="gray.200"
               w="fit-content"
-              gap={0}
+              gap={1}
             >
               {tabs.map((tab, index) => (
                 <ConfigTabButton

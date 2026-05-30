@@ -20,21 +20,21 @@ const MapaPage = () => {
   return (
     <>
       <Navbar />
-      <Box maxW="1300px" mx="auto" px={12} py={8}>
-        <VStack gap={6} align="stretch">
+      <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
+        <VStack gap={{ base: 4, md: 6 }} align="stretch">
+
+          {/* Header */}
           <Box>
-            <Text fontSize="2xl" fontWeight="700" mb={1}>
+            <Text fontSize={{ base: 'xl', md: '2xl' }} fontWeight="700" mb={1}>
               Mapa de Sensores
             </Text>
-            <HStack gap={2}>
+            <HStack gap={2} flexWrap="wrap">
               <Text fontSize="sm" color="gray.500">
                 Visualización geográfica de todos los sensores activos
               </Text>
               <HStack gap={1}>
                 <Box
-                  w={2}
-                  h={2}
-                  borderRadius="full"
+                  w={2} h={2} borderRadius="full"
                   bg={CONNECTION_STATUS_LABELS[connectionStatus]?.color || '#868E96'}
                 />
                 <Text fontSize="xs" color="gray.400">
@@ -44,7 +44,11 @@ const MapaPage = () => {
             </HStack>
           </Box>
 
-          <Grid templateColumns="2fr 1fr" gap={6}>
+          {/* Map + Sidebar: stacked on mobile, side by side on desktop */}
+          <Grid
+            templateColumns={{ base: '1fr', lg: '2fr 1fr' }}
+            gap={{ base: 4, md: 6 }}
+          >
             <GridItem>
               <MapView ref={mapRef} celdas={celdas} />
             </GridItem>
@@ -55,10 +59,11 @@ const MapaPage = () => {
               />
             </GridItem>
           </Grid>
+
         </VStack>
       </Box>
     </>
   )
 }
 
-export default MapaPage
+export default MapaPage
