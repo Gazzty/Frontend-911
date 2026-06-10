@@ -43,6 +43,8 @@ export interface Medicion {
   sensorId: number | null;
 }
 
+export type TimeRange = 'year' | 'month' | 'week' | 'day';
+
 export interface Config {
   umbrales: {
     temperatura: number;

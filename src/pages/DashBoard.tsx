@@ -2,7 +2,7 @@ import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton, HStack } f
 import { createToaster } from '@chakra-ui/react';
 import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FaSync, FaFire, FaTimes, FaWifi } from 'react-icons/fa';
+import { FaSync, FaFire, FaTimes } from 'react-icons/fa';
 import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
@@ -10,7 +10,7 @@ import CeldasList from '../components/dashboard/CeldasList';
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
-import type { DashboardStats, TemperatureReading } from '../types';
+import type { DashboardStats, TemperatureReading, TimeRange } from '../types';
 
 const MotionBox = motion.create(Box);
 
@@ -26,6 +26,7 @@ const CONNECTION_STATUS_LABELS: Record<string, { label: string; color: string }>
 const DashboardPage = () => {
   const { celdas, connectionStatus, lastUpdate: wsLastUpdate } = useSensorData();
   const [temperatureData, setTemperatureData] = useState<TemperatureReading[]>([]);
+  const [timeRange, setTimeRange] = useState<TimeRange>('week');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -63,17 +64,18 @@ const DashboardPage = () => {
   }, [wsLastUpdate]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(timeRange);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeRange]);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const loadData = async (range: TimeRange) => {
+    if (temperatureData.length === 0) setIsLoading(true);
+    else setIsRefreshing(true);
     setHasError(false);
     try {
-      const tempData = await dataService.getTemperatureHistory(
-        celdas.length > 0 ? celdas : await dataService.getCeldas(),
-      );
-      if (!Array.isArray(tempData) || tempData.length === 0) throw new Error('Datos inválidos');
+      const activeCeldas = celdas.length > 0 ? celdas : await dataService.getCeldas();
+      const tempData = await dataService.getTemperatureHistory(activeCeldas, range);
+      if (!Array.isArray(tempData)) throw new Error('Datos inválidos');
       setTemperatureData(tempData);
       setLastUpdate(new Date());
       setHasError(false);
@@ -86,13 +88,15 @@ const DashboardPage = () => {
       });
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   const refreshData = async () => {
     setIsRefreshing(true);
     try {
-      const tempData = await dataService.getTemperatureHistory(celdas);
+      const activeCeldas = celdas.length > 0 ? celdas : await dataService.getCeldas();
+      const tempData = await dataService.getTemperatureHistory(activeCeldas, timeRange);
       setTemperatureData(tempData);
       setLastUpdate(new Date());
       setAlertDismissed(false);
@@ -277,7 +281,13 @@ const DashboardPage = () => {
           >
             <GridItem>
               {temperatureData.length > 0 ? (
-                <TemperatureChart data={temperatureData} celdas={celdas} />
+                <TemperatureChart
+                  data={temperatureData}
+                  celdas={celdas}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                  isLoading={isRefreshing}
+                />
               ) : (
                 <Box
                   bg="white" p={6} borderRadius="lg" boxShadow="sm"
