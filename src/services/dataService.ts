@@ -1,5 +1,6 @@
-import type { Celda, DashboardStats, TemperatureReading, Config } from '../types';
+import type { Celda, DashboardStats, TemperatureReading, Config, TimeRange } from '../types';
 import { getAllSettings, updateSetting } from '../api/settingsApi';
+import { getCellPollings, getCellsFull, type Cell } from '../api/cellApi';
 
 const SETTING_CODES = {
   TEMPERATURA_UMBRAL: 'TempMax',
@@ -24,6 +25,25 @@ const DEFAULT_CONFIG: Config = {
     telefono: '',
   },
 };
+
+const cellToCelda = (cell: Cell): Celda => ({
+  id: cell.id,
+  nombre: cell.description,
+  timestamp: '--:--:--',
+  activa: cell.active,
+  sensores: (cell.sensors ?? [])
+    .filter((s) => s.active)
+    .map((s) => ({
+      id: s.id ?? 0,
+      temperatura: 0,
+      enFuego: false,
+      tipo: s.type?.id === 2 ? 'fuego' : 'temperatura',
+    })),
+  ubicacion: {
+    lat: parseFloat(cell.latitude),
+    lng: parseFloat(cell.longitude),
+  },
+});
 
 const generateMockCeldas = (): Celda[] => {
   return [
@@ -165,8 +185,8 @@ const generateTemperatureData = (celdas: Celda[]): TemperatureReading[] => {
 
 export const dataService = {
   getCeldas: async (): Promise<Celda[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return generateMockCeldas();
+    const cells = await getCellsFull();
+    return cells.map(cellToCelda);
   },
 
   getDashboardStats: async (): Promise<DashboardStats> => {
@@ -200,9 +220,86 @@ export const dataService = {
     };
   },
 
-  getTemperatureHistory: async (celdas: Celda[]): Promise<TemperatureReading[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return generateTemperatureData(celdas);
+  getTemperatureHistory: async (celdas: Celda[], timeRange: TimeRange): Promise<TemperatureReading[]> => {
+    let activeCeldas = celdas;
+    if (activeCeldas.length === 0) {
+      const cells = await getCellsFull();
+      activeCeldas = cells.map(cellToCelda);
+    }
+
+    if (activeCeldas.length === 0) return [];
+
+    // Build sensor → cell map for temperature-only sensors (fallback: include all if no sensor info)
+    const tempSensorsByCell = new Map<number, Set<number>>();
+    activeCeldas.forEach((celda) => {
+      const ids = celda.sensores
+        .filter((s) => s.tipo === 'temperatura' && s.id !== 0)
+        .map((s) => s.id);
+      if (ids.length > 0) tempSensorsByCell.set(celda.id, new Set(ids));
+    });
+
+    // Build date range from local time to match server's naive datetime storage
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localIso = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000Z`;
+
+    const now = new Date();
+    let minDate: Date;
+    let maxDate: Date;
+
+    switch (timeRange) {
+      case 'day':
+        minDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        maxDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        break;
+      case 'week':
+        minDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        maxDate = now;
+        break;
+      case 'month':
+        minDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        maxDate = now;
+        break;
+      case 'year':
+        minDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        maxDate = now;
+        break;
+    }
+
+    const cellPollings = await getCellPollings({
+      cellsIds: activeCeldas.map((c) => c.id),
+      min: localIso(minDate),
+      max: localIso(maxDate),
+    });
+
+    // Group into 5-minute buckets → one TemperatureReading per bucket per cell
+    const readingsMap = new Map<string, TemperatureReading>();
+
+    cellPollings.forEach((cell) => {
+      const knownTempSensors = tempSensorsByCell.get(cell.id);
+      cell.sensorsPollings.forEach((polling) => {
+        // Skip non-temperature sensors when we have sensor type info
+        if (knownTempSensors && !knownTempSensors.has(polling.sensorId)) return;
+
+        const value = parseFloat(polling.pollingValue);
+        if (isNaN(value)) return;
+
+        const date = new Date(polling.dateTime);
+        date.setSeconds(0, 0);
+        date.setMinutes(Math.floor(date.getMinutes() / 5) * 5);
+        const key = date.toISOString();
+
+        if (!readingsMap.has(key)) readingsMap.set(key, { timestamp: key });
+
+        const reading = readingsMap.get(key)!;
+        const prev = reading[`celda_${cell.id}`] as number | undefined;
+        reading[`celda_${cell.id}`] = prev !== undefined ? (prev + value) / 2 : value;
+      });
+    });
+
+    return Array.from(readingsMap.values()).sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
   },
 
   getConfig: async (): Promise<Config> => {
