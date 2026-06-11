@@ -8,8 +8,8 @@ export type FiredPollingResponse = ApiResponse;
  * Body: raw datagram string
  */
 export const sendFiredPolling = async (datagram: string) => {
-  const res = await fetch(
-    "https://fired.runasp.net/Fired/Polling/SendAndAwaitResponse",
+  return request<FiredPollingResponse>(
+    "/Fired/Polling/SendAndAwaitResponse",
     {
       method: "POST",
       headers: {
@@ -18,10 +18,4 @@ export const sendFiredPolling = async (datagram: string) => {
       body: JSON.stringify(datagram),
     }
   );
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  return res.json();
 };

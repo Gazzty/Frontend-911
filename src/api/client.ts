@@ -1,4 +1,5 @@
 export const BASE_URL = "https://fired.runasp.net";
+// export const BASE_URL = "https://localhost:7035"
 
 export const request = async <T>(
   endpoint: string,
@@ -11,6 +12,10 @@ export const request = async <T>(
     headers["Content-Type"] = "application/json";
   }
 
+  // if (options?.body && !options.headers?.["Content-Type"]) {
+  //   headers["Content-Type"] = "application/json";
+  // }
+  console.log("URL FINAL:", `${BASE_URL}${endpoint}`);
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: {
