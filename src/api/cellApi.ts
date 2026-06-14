@@ -35,20 +35,6 @@ export interface SensorPolling {
   sensorId: number;
 }
 
-export interface CellPolling {
-  id: number;
-  isActive: boolean;
-  description: string;
-  sensorsPollings: SensorPolling[];
-}
-
-export interface GetCellPollingsDto {
-  cellsIds: number[];
-  min: string;
-  max: string;
-  interval: number; // 0=day, 1=week, 2=month, 3=year
-}
-
 export type CreateCellDto = {
   description: string;
   latitude: string;
@@ -100,22 +86,7 @@ export const getCells = async (): Promise<Cell[]> => {
   return handleResponse(res, "Error fetching cells") ?? [];
 };
 
-// 2️⃣ POST /Cell/Get-cell-pollings
-export const getCellPollings = async (
-  data: GetCellPollingsDto
-): Promise<CellPolling[]> => {
-  const res = await request<ApiResponse<CellPolling[]>>(
-    "/Cell/Get-cell-pollings",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    }
-  );
-
-  return handleResponse(res, "Error fetching cell pollings") ?? [];
-};
-
-// 3️⃣ GET /Cell/Get/Full/{id}
+// 2️⃣ GET /Cell/Get/Full/{id}
 export const getCellFullById = async (
   id: number
 ): Promise<Cell> => {
@@ -126,7 +97,7 @@ export const getCellFullById = async (
   return handleResponse(res, "Cell not found");
 };
 
-// 4️⃣ GET /Cell/Get/{id}
+// 3️⃣ GET /Cell/Get/{id}
 export const getCellById = async (
   id: number
 ): Promise<Cell> => {
@@ -146,7 +117,7 @@ export const getCellsFull = async (): Promise<Cell[]> => {
   );
 };
 
-// 5️⃣ POST /Cell/Add
+// 4️⃣ POST /Cell/Add
 export const createCell = async (
   data: CreateCellDto
 ): Promise<{
@@ -167,7 +138,7 @@ export const createCell = async (
   };
 };
 
-// 6️⃣ PUT /Cell/Update
+// 5️⃣ PUT /Cell/Update
 export const updateCell = async (data: UpdateCellDto): Promise<void> => {
   const res = await request<ApiResponse>(
     "/Cell/Update",
@@ -180,7 +151,7 @@ export const updateCell = async (data: UpdateCellDto): Promise<void> => {
   handleResponseVoid(res, "Error updating cell");
 };
 
-// 7️⃣ DELETE /Cell/Delete/{id}
+// 6️⃣ DELETE /Cell/Delete/{id}
 export const deleteCell = async (
   id: number
 ): Promise<void> => {

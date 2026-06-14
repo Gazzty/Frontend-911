@@ -3,7 +3,6 @@ import {
   deleteCell,
   getCellById,
   getCellFullById,
-  getCellPollings,
   getCells,
   getCellsFull,
   updateCell,
@@ -99,29 +98,9 @@ async function runTest() {
     console.log("✅ Full cells:", fullCells.map(x => x.id));
 
     //
-    // 7️⃣ GET POLLINGS
+    // 7️⃣ DELETE
     //
-    console.log("7) Getting cell pollings...");
-
-    const now = new Date();
-
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-
-    const pollings = await getCellPollings({
-      cellsIds: [createdId],
-      min: yesterday.toISOString(),
-      max: now.toISOString(),
-    });
-
-    console.log("✅ Pollings:");
-    console.log(JSON.stringify(pollings, null, 2));
-    console.log();
-
-    //
-    // 8️⃣ DELETE
-    //
-    console.log("8) Deleting cell...");
+    console.log("7) Deleting cell...");
 
     await deleteCell(createdId);
 

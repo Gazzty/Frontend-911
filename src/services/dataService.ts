@@ -1,6 +1,7 @@
 import type { Celda, DashboardStats, TemperatureReading, Config, TimeRange } from '../types';
 import { getAllSettings, updateSetting } from '../api/settingsApi';
-import { getCellPollings, getCellsFull, type Cell } from '../api/cellApi';
+import { getCellsFull, type Cell } from '../api/cellApi';
+import { getSensorPollingsByDate } from '../api/sensorApi';
 
 const SETTING_CODES = {
   TEMPERATURA_UMBRAL: 'TempMax',
@@ -229,14 +230,23 @@ export const dataService = {
 
     if (activeCeldas.length === 0) return [];
 
-    // Build sensor → cell map for temperature-only sensors (fallback: include all if no sensor info)
-    const tempSensorsByCell = new Map<number, Set<number>>();
+    // Build sensor → cell map for temperature-only sensors (fallback: all sensors if no type info)
+    const sensorToCellId = new Map<number, number>();
     activeCeldas.forEach((celda) => {
-      const ids = celda.sensores
+      celda.sensores
         .filter((s) => s.tipo === 'temperatura' && s.id !== 0)
-        .map((s) => s.id);
-      if (ids.length > 0) tempSensorsByCell.set(celda.id, new Set(ids));
+        .forEach((s) => sensorToCellId.set(s.id, celda.id));
     });
+
+    if (sensorToCellId.size === 0) {
+      activeCeldas.forEach((celda) => {
+        celda.sensores
+          .filter((s) => s.id !== 0)
+          .forEach((s) => sensorToCellId.set(s.id, celda.id));
+      });
+    }
+
+    if (sensorToCellId.size === 0) return [];
 
     // Build date range from local time to match server's naive datetime storage
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -266,38 +276,32 @@ export const dataService = {
         break;
     }
 
-    const intervalMap: Record<TimeRange, number> = { day: 0, week: 1, month: 2, year: 3 };
-
-    const cellPollings = await getCellPollings({
-      cellsIds: activeCeldas.map((c) => c.id),
+    const sensorPollings = await getSensorPollingsByDate({
+      sensorsIds: Array.from(sensorToCellId.keys()),
       min: localIso(minDate),
       max: localIso(maxDate),
-      interval: intervalMap[timeRange],
     });
 
     // Group into 5-minute buckets → one TemperatureReading per bucket per cell
     const readingsMap = new Map<string, TemperatureReading>();
 
-    cellPollings.forEach((cell) => {
-      const knownTempSensors = tempSensorsByCell.get(cell.id);
-      cell.sensorsPollings.forEach((polling) => {
-        // Skip non-temperature sensors when we have sensor type info
-        if (knownTempSensors && !knownTempSensors.has(polling.sensorId)) return;
+    sensorPollings.forEach((polling) => {
+      const cellId = sensorToCellId.get(polling.sensorId);
+      if (cellId === undefined) return;
 
-        const value = parseFloat(polling.pollingValue);
-        if (isNaN(value)) return;
+      const value = parseFloat(polling.pollingValue);
+      if (isNaN(value)) return;
 
-        const date = new Date(polling.dateTime);
-        date.setSeconds(0, 0);
-        date.setMinutes(Math.floor(date.getMinutes() / 5) * 5);
-        const key = date.toISOString();
+      const date = new Date(polling.dateTime);
+      date.setSeconds(0, 0);
+      date.setMinutes(Math.floor(date.getMinutes() / 5) * 5);
+      const key = date.toISOString();
 
-        if (!readingsMap.has(key)) readingsMap.set(key, { timestamp: key });
+      if (!readingsMap.has(key)) readingsMap.set(key, { timestamp: key });
 
-        const reading = readingsMap.get(key)!;
-        const prev = reading[`celda_${cell.id}`] as number | undefined;
-        reading[`celda_${cell.id}`] = prev !== undefined ? (prev + value) / 2 : value;
-      });
+      const reading = readingsMap.get(key)!;
+      const prev = reading[`celda_${cellId}`] as number | undefined;
+      reading[`celda_${cellId}`] = prev !== undefined ? (prev + value) / 2 : value;
     });
 
     return Array.from(readingsMap.values()).sort(
