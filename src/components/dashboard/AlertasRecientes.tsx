@@ -1,36 +1,27 @@
 import { Box, Text, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import type { Celda } from '../../types';
-import AlertaCard, { AlertaData } from './AlertaCard';
+import { useEffect, useState } from 'react';
+import { getLastEventsByTypes, type EventLogItem } from '../../api/eventsLogApi';
+import AlertaCard from './AlertaCard';
 
 const MotionBox = motion.create(Box);
 
-interface AlertasRecientesProps {
-  celdas: Celda[];
-}
+const ALERT_TYPES = [2, 4]; // Fire, WarningFire
 
-const AlertasRecientes = ({ celdas }: AlertasRecientesProps) => {
-  // Generar alertas desde las celdas con sensores en fuego
-  const alertas: AlertaData[] = [];
-  
-  celdas.forEach((celda) => {
-    celda.sensores.forEach((sensor) => {
-      if (sensor.enFuego) {
-        alertas.push({
-          celda,
-          temperatura: sensor.temperatura,
-          timestamp: celda.timestamp,
-        });
-      }
-    });
-  });
+const AlertasRecientes = () => {
+  const [alertas, setAlertas] = useState<EventLogItem[]>([]);
 
-  // Limitar a 3 alertas más recientes
-  const alertasRecientes = alertas.slice(0, 3);
+  useEffect(() => {
+    getLastEventsByTypes({ eventTypes: ALERT_TYPES, last: 10 })
+      .then((res) => {
+        if (res.success && res.payload) {
+          setAlertas(res.payload.filter((a) => ALERT_TYPES.includes(a.alertLogTypeId)));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  if (alertasRecientes.length === 0) {
-    return null;
-  }
+  if (alertas.length === 0) return null;
 
   return (
     <MotionBox
@@ -51,8 +42,8 @@ const AlertasRecientes = ({ celdas }: AlertasRecientesProps) => {
         </Text>
 
         <VStack gap={3} align="stretch">
-          {alertasRecientes.map((alerta, index) => (
-            <AlertaCard key={`${alerta.celda.id}-${index}`} alerta={alerta} index={index} />
+          {alertas.map((alerta, index) => (
+            <AlertaCard key={`${alerta.alertLogTypeId}-${alerta.date}-${index}`} alerta={alerta} index={index} />
           ))}
         </VStack>
       </Box>

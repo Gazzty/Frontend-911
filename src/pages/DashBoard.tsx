@@ -280,22 +280,13 @@ const DashboardPage = () => {
             alignItems="stretch"
           >
             <GridItem>
-              {temperatureData.length > 0 ? (
-                <TemperatureChart
-                  data={temperatureData}
-                  celdas={celdas}
-                  timeRange={timeRange}
-                  onTimeRangeChange={setTimeRange}
-                  isLoading={isRefreshing}
-                />
-              ) : (
-                <Box
-                  bg="white" p={6} borderRadius="lg" boxShadow="sm"
-                  borderWidth="1px" borderColor="gray.200" textAlign="center"
-                >
-                  <Text color="gray.500">No hay datos de temperatura disponibles</Text>
-                </Box>
-              )}
+              <TemperatureChart
+                data={temperatureData}
+                celdas={celdas}
+                timeRange={timeRange}
+                onTimeRangeChange={setTimeRange}
+                isLoading={isRefreshing}
+              />
             </GridItem>
             <GridItem minH={0}>
               {celdas.length > 0 ? (
@@ -311,7 +302,7 @@ const DashboardPage = () => {
             </GridItem>
           </Grid>
 
-          <AlertasRecientes celdas={celdas} />
+          <AlertasRecientes />
         </VStack>
       </Box>
     </>

@@ -203,6 +203,17 @@ const TemperatureChart = ({ data, celdas, timeRange, onTimeRangeChange, isLoadin
               <Spinner size="xl" color="brand.orange" borderWidth="3px" />
             </Box>
           )}
+          {!isLoading && data.length === 0 && (
+            <Box
+              position="absolute"
+              inset={0}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text color="gray.400" fontSize="sm">No hay datos de temperatura disponibles</Text>
+            </Box>
+          )}
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={filterData()}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E8E8E8" />

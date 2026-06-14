@@ -46,6 +46,7 @@ export interface GetCellPollingsDto {
   cellsIds: number[];
   min: string;
   max: string;
+  interval: number; // 0=day, 1=week, 2=month, 3=year
 }
 
 export type CreateCellDto = {
