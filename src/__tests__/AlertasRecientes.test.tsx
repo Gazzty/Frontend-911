@@ -1,61 +1,88 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from './test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from './test-utils'
 import AlertasRecientes from '../components/dashboard/AlertasRecientes'
-import type { Celda } from '../types'
+import * as eventsLogApi from '../api/eventsLogApi'
+import type { EventLogItem } from '../api/eventsLogApi'
 
 vi.mock('framer-motion', () => ({
   motion: { create: (Comp: any) => Comp },
   AnimatePresence: ({ children }: any) => children,
 }))
 
-const makeCelda = (id: number, nombre: string, enFuego: boolean, temperatura = 80): Celda => ({
-  id,
-  nombre,
-  timestamp: '10:00:00',
-  activa: true,
-  sensores: [{ id, temperatura, enFuego, tipo: 'temperatura' }],
-  ubicacion: { lat: -34.6, lng: -58.4 },
+vi.mock('../api/eventsLogApi', () => ({
+  getLastEventsByTypes: vi.fn(),
+}))
+
+const makeAlerta = (
+  id: number,
+  summary: string,
+  detail = 'Incendio detectado',
+  alertLogTypeId = 2,
+): EventLogItem => ({
+  date: '2024-01-01T10:00:00',
+  alertLogTypeId,
+  alertLogTypeDescription: 'Fire',
+  detail,
+  summary,
 })
 
 describe('AlertasRecientes – Dashboard alert', () => {
-  it('renders nothing when no cells have fire sensors', () => {
-    const normalCeldas = [makeCelda(1, 'Celda A', false), makeCelda(2, 'Celda B', false)]
-    const { container } = render(<AlertasRecientes celdas={normalCeldas} />)
+  beforeEach(() => {
+    vi.mocked(eventsLogApi.getLastEventsByTypes).mockResolvedValue({
+      success: true,
+      errors: null,
+      payload: [],
+    })
+  })
+
+  it('renders nothing when no fire alerts are returned', async () => {
+    const { container } = render(<AlertasRecientes />)
+    await waitFor(() => expect(eventsLogApi.getLastEventsByTypes).toHaveBeenCalled())
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders the "Alertas recientes" heading when there are fire alerts', () => {
-    const celdas = [makeCelda(1, 'Celda Fuego', true)]
-    render(<AlertasRecientes celdas={celdas} />)
-    expect(screen.getByText('Alertas recientes')).toBeInTheDocument()
+  it('renders the "Alertas recientes" heading when there are fire alerts', async () => {
+    vi.mocked(eventsLogApi.getLastEventsByTypes).mockResolvedValue({
+      success: true,
+      errors: null,
+      payload: [makeAlerta(1, 'Celda Fuego')],
+    })
+    render(<AlertasRecientes />)
+    expect(await screen.findByText('Alertas recientes')).toBeInTheDocument()
   })
 
-  it('displays the cell name for each active fire alert', () => {
-    const celdas = [makeCelda(1, 'Celda Incendio', true)]
-    render(<AlertasRecientes celdas={celdas} />)
-    expect(screen.getByText('Celda Incendio')).toBeInTheDocument()
+  it('displays the summary for each fire alert', async () => {
+    vi.mocked(eventsLogApi.getLastEventsByTypes).mockResolvedValue({
+      success: true,
+      errors: null,
+      payload: [makeAlerta(1, 'Celda Incendio')],
+    })
+    render(<AlertasRecientes />)
+    expect(await screen.findByText('Celda Incendio')).toBeInTheDocument()
   })
 
-  it('displays the critical temperature in each alert', () => {
-    const celdas = [makeCelda(1, 'Celda Fuego', true, 92)]
-    render(<AlertasRecientes celdas={celdas} />)
-    expect(screen.getByText('Temp. crítica: 92°C')).toBeInTheDocument()
+  it('displays the detail for each fire alert', async () => {
+    vi.mocked(eventsLogApi.getLastEventsByTypes).mockResolvedValue({
+      success: true,
+      errors: null,
+      payload: [makeAlerta(1, 'Celda Fuego', 'Temp. crítica: 92°C')],
+    })
+    render(<AlertasRecientes />)
+    expect(await screen.findByText('Temp. crítica: 92°C')).toBeInTheDocument()
   })
 
-  it('limits the displayed alerts to a maximum of 3', () => {
-    const celdas = [
-      makeCelda(1, 'Celda 1', true),
-      makeCelda(2, 'Celda 2', true),
-      makeCelda(3, 'Celda 3', true),
-      makeCelda(4, 'Celda 4', true),
-      makeCelda(5, 'Celda 5', true),
-    ]
-    render(<AlertasRecientes celdas={celdas} />)
-
-    expect(screen.getByText('Celda 1')).toBeInTheDocument()
-    expect(screen.getByText('Celda 2')).toBeInTheDocument()
-    expect(screen.getByText('Celda 3')).toBeInTheDocument()
-    expect(screen.queryByText('Celda 4')).not.toBeInTheDocument()
-    expect(screen.queryByText('Celda 5')).not.toBeInTheDocument()
+  it('displays all returned fire alerts', async () => {
+    const payload = Array.from({ length: 5 }, (_, i) =>
+      makeAlerta(i + 1, `Celda ${i + 1}`),
+    )
+    vi.mocked(eventsLogApi.getLastEventsByTypes).mockResolvedValue({
+      success: true,
+      errors: null,
+      payload,
+    })
+    render(<AlertasRecientes />)
+    for (let i = 1; i <= 5; i++) {
+      expect(await screen.findByText(`Celda ${i}`)).toBeInTheDocument()
+    }
   })
 })
