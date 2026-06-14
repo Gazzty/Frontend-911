@@ -11,7 +11,7 @@ export type EventLogItem = {
 
 export type EventsLogResponse = ApiResponse<EventLogItem[]>;
 
-// GET LAST
+// GET LAST (legacy GET variant)
 export async function getLastEventsLogs(top: number) {
   return request<EventsLogResponse>(
     `/EventsLog/Logs/Get-last?top=${top}`,
@@ -19,6 +19,15 @@ export async function getLastEventsLogs(top: number) {
       method: "GET",
     }
   );
+}
+
+// GET LAST BY TYPES
+export async function getLastEventsByTypes(body: { eventTypes: number[]; last: number }) {
+  return request<EventsLogResponse>(`/EventsLog/Logs/Get-last`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 // GET BY DATE

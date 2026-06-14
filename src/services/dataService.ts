@@ -266,10 +266,13 @@ export const dataService = {
         break;
     }
 
+    const intervalMap: Record<TimeRange, number> = { day: 0, week: 1, month: 2, year: 3 };
+
     const cellPollings = await getCellPollings({
       cellsIds: activeCeldas.map((c) => c.id),
       min: localIso(minDate),
       max: localIso(maxDate),
+      interval: intervalMap[timeRange],
     });
 
     // Group into 5-minute buckets → one TemperatureReading per bucket per cell
