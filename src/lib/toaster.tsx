@@ -1,6 +1,6 @@
 import { Stack, Toast, Toaster as ChakraToaster, createToaster } from '@chakra-ui/react';
 
-export const toaster = createToaster({ placement: 'top', duration: 3000 });
+export const toaster = createToaster({ placement: 'top', duration: 3000, gap: 12 });
 
 export const Toaster = () => (
   <ChakraToaster toaster={toaster}>
