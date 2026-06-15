@@ -2,13 +2,12 @@ import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton, HStack } f
 import { createToaster } from '@chakra-ui/react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaSync, FaFire, FaTimes } from 'react-icons/fa';
+import { FaSync, FaFire } from 'react-icons/fa';
 import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
-import FireAlert from '../components/dashboard/FireAlert';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
 import { websocketService } from '../services/websocketService';
@@ -34,14 +33,8 @@ const DashboardPage = () => {
   const [hasError, setHasError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
-  const [fireAlertDismissed, setFireAlertDismissed] = useState(false);
   const [alertRefreshKey, setAlertRefreshKey] = useState(0);
   const prevFireCountRef = useRef(0);
-
-  const celdasEnFuego = useMemo(
-    () => celdas.filter((c) => c.sensores.some((s) => s.enFuego)),
-    [celdas]
-  );
 
   const stats = useMemo<DashboardStats>(() => {
     const celdasActivas = celdas.filter((c) => c.activa).length;
@@ -77,28 +70,18 @@ const DashboardPage = () => {
     const currentCount = stats.posiblesIncendios;
     const prevCount = prevFireCountRef.current;
     prevFireCountRef.current = currentCount;
-
     if (currentCount <= prevCount) return;
-
-    setFireAlertDismissed(false);
-    // Delay so the backend has time to finish writing the event log entry
-    // before we fetch it (the DB write happens after the WS broadcast).
     const timer = setTimeout(() => setAlertRefreshKey((k) => k + 1), 1000);
     return () => clearTimeout(timer);
   }, [stats.posiblesIncendios]);
 
-  // WarningFired covers temperature-threshold alerts (type 4) on every polling
-  // cycle, including cases where posiblesIncendios doesn't change.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     const unsub = websocketService.onWarningFired(() => {
       clearTimeout(timer);
       timer = setTimeout(() => setAlertRefreshKey((k) => k + 1), 1000);
     });
-    return () => {
-      unsub();
-      clearTimeout(timer);
-    };
+    return () => { unsub(); clearTimeout(timer); };
   }, []);
 
   useEffect(() => {
@@ -194,10 +177,6 @@ const DashboardPage = () => {
 
   return (
     <>
-      <FireAlert
-        celdasEnFuego={fireAlertDismissed ? [] : (celdasEnFuego.length > 0 ? celdasEnFuego : [{ id: 'test-1', nombre: 'Bariloche', activa: true, sensores: [] }, { id: 'test-2', nombre: 'San Martín de los Andes', activa: true, sensores: [] }])}
-        onDismiss={() => setFireAlertDismissed(true)}
-      />
       <Navbar />
       <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
         <VStack gap={{ base: 4, md: 6 }} align="stretch">

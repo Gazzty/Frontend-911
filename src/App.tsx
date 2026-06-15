@@ -9,6 +9,7 @@ import ConfiguracionPage from './pages/ConfiguracionPage';
 import { authService } from './services/authService';
 import { SensorDataProvider } from './context/SensorDataContext';
 import { Toaster } from './lib/toaster';
+import GlobalFireAlert from './components/GlobalFireAlert';
 
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -33,6 +34,7 @@ function App() {
     <ChakraProvider value={system}>
       <BrowserRouter>
         <SensorDataProvider>
+          <GlobalFireAlert />
           <RouteAwareToaster />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
