@@ -1,6 +1,6 @@
 import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton, HStack } from '@chakra-ui/react';
 import { createToaster } from '@chakra-ui/react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FaSync, FaFire, FaTimes } from 'react-icons/fa';
 import Navbar from '../components/layout/Navbar';
@@ -8,6 +8,7 @@ import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
+import FireAlert from '../components/dashboard/FireAlert';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
 import type { DashboardStats, TemperatureReading, TimeRange } from '../types';
@@ -32,6 +33,13 @@ const DashboardPage = () => {
   const [hasError, setHasError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [fireAlertDismissed, setFireAlertDismissed] = useState(false);
+  const prevFireCountRef = useRef(0);
+
+  const celdasEnFuego = useMemo(
+    () => celdas.filter((c) => c.sensores.some((s) => s.enFuego)),
+    [celdas]
+  );
 
   const stats = useMemo<DashboardStats>(() => {
     const celdasActivas = celdas.filter((c) => c.activa).length;
@@ -62,6 +70,14 @@ const DashboardPage = () => {
       setAlertDismissed(false);
     }
   }, [wsLastUpdate]);
+
+  useEffect(() => {
+    const currentCount = stats.posiblesIncendios;
+    if (currentCount > prevFireCountRef.current) {
+      setFireAlertDismissed(false);
+    }
+    prevFireCountRef.current = currentCount;
+  }, [stats.posiblesIncendios]);
 
   useEffect(() => {
     loadData(timeRange);
@@ -156,6 +172,10 @@ const DashboardPage = () => {
 
   return (
     <>
+      <FireAlert
+        celdasEnFuego={fireAlertDismissed ? [] : celdasEnFuego}
+        onDismiss={() => setFireAlertDismissed(true)}
+      />
       <Navbar />
       <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
         <VStack gap={{ base: 4, md: 6 }} align="stretch">

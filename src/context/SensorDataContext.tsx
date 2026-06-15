@@ -113,7 +113,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
           celdaModificada = true;
           if (sensor.tipo === 'fuego') {
             const valor = (medicion.pollingValue ?? '').trim();
-            return { ...sensor, enFuego: valor !== '0' && valor !== '' };
+            return { ...sensor, enFuego: valor === '1' };
           }
           const temp = parseFloat((medicion.pollingValue ?? '').trim());
           return {
