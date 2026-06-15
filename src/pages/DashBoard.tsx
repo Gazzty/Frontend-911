@@ -173,7 +173,7 @@ const DashboardPage = () => {
   return (
     <>
       <FireAlert
-        celdasEnFuego={fireAlertDismissed ? [] : celdasEnFuego}
+        celdasEnFuego={fireAlertDismissed ? [] : (celdasEnFuego.length > 0 ? celdasEnFuego : [{ id: 'test-1', nombre: 'Bariloche', activa: true, sensores: [] }, { id: 'test-2', nombre: 'San Martín de los Andes', activa: true, sensores: [] }])}
         onDismiss={() => setFireAlertDismissed(true)}
       />
       <Navbar />
