@@ -41,7 +41,7 @@ const aggregateByBucket = (data: TemperatureReading[], bucketMinutes: number): T
     .sort(([a], [b]) => a - b)
     .map(([ts, { sums, counts }]) => {
       const result: TemperatureReading = { timestamp: new Date(ts).toISOString(), time: ts };
-      Object.keys(sums).forEach(k => { result[k] = Math.round(sums[k] / counts[k]); });
+      Object.keys(sums).forEach(k => { result[k] = Math.round((sums[k] / counts[k]) * 10) / 10; });
       return result;
     });
 };

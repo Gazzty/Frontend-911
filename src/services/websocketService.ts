@@ -6,12 +6,14 @@ export type ConnectionStatus = 'conectando' | 'conectado' | 'desconectado' | 'er
 type MessageCallback = (mediciones: Medicion[]) => void;
 type StatusCallback = (status: ConnectionStatus) => void;
 type SensorConnectionInfoCallback = (info: SensorConnectionInfo) => void;
+type WarningFiredCallback = (info: { cellId: number; type: string; value: string }) => void;
 
 class WebSocketService {
   private connection: signalR.HubConnection | null = null;
   private messageCallbacks: MessageCallback[] = [];
   private statusCallbacks: StatusCallback[] = [];
   private sensorConnectionInfoCallbacks: SensorConnectionInfoCallback[] = [];
+  private warningFiredCallbacks: WarningFiredCallback[] = [];
   private _status: ConnectionStatus = 'desconectado';
 
   get status(): ConnectionStatus {
@@ -48,6 +50,10 @@ class WebSocketService {
 
     connection.on('SensorConnectionInfo', (info: SensorConnectionInfo) => {
       this.sensorConnectionInfoCallbacks.forEach((cb) => cb(info));
+    });
+
+    connection.on('WarningFired', (info: { cellId: number; type: string; value: string }) => {
+      this.warningFiredCallbacks.forEach((cb) => cb(info));
     });
 
     connection.onreconnecting(() => {
@@ -121,6 +127,13 @@ class WebSocketService {
       this.sensorConnectionInfoCallbacks = this.sensorConnectionInfoCallbacks.filter(
         (cb) => cb !== callback
       );
+    };
+  }
+
+  onWarningFired(callback: WarningFiredCallback): () => void {
+    this.warningFiredCallbacks.push(callback);
+    return () => {
+      this.warningFiredCallbacks = this.warningFiredCallbacks.filter((cb) => cb !== callback);
     };
   }
 }

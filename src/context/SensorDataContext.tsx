@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
 import type { Medicion, Celda } from '../types';
 import { getCellsFull, type Cell } from '../api/cellApi';
+import { getAllSettings } from '../api/settingsApi';
 import { toaster } from '../lib/toaster';
 
 interface SensorDataContextType {
@@ -24,11 +25,13 @@ interface SensorDataContextType {
   cargandoCeldas: boolean;
   /** Vuelve a buscar las celdas desde la API y actualiza el estado */
   refreshCeldas: () => Promise<void>;
+  /** Umbral de temperatura para alerta (°C), leído de la configuración del backend */
+  umbralTemperatura: number;
 }
 
 const SensorDataContext = createContext<SensorDataContextType | null>(null);
 
-const UMBRAL_TEMPERATURA = 50;
+const DEFAULT_UMBRAL = 50;
 const DEFAULT_INTERVALO = 10;
 
 function cellToCelda(cell: Cell): Celda {
@@ -60,12 +63,25 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [intervaloMedicion, setIntervaloMedicion] = useState(DEFAULT_INTERVALO);
   const [cargandoCeldas, setCargandoCeldas] = useState(true);
+  const [umbralTemperatura, setUmbralTemperatura] = useState(DEFAULT_UMBRAL);
 
   const celdasRef = useRef<Celda[]>([]);
   const bufferRef = useRef<Medicion[]>([]);
+  const umbralRef = useRef(DEFAULT_UMBRAL);
 
-  // Cargar celdas desde la API REST al montar
+  // Cargar celdas y umbral desde la API REST al montar
   useEffect(() => {
+    getAllSettings()
+      .then((settings) => {
+        const setting = settings.find((s) => s.code === 'TempMax');
+        const value = setting ? Number(setting.value) : DEFAULT_UMBRAL;
+        if (!isNaN(value) && value > 0) {
+          umbralRef.current = value;
+          setUmbralTemperatura(value);
+        }
+      })
+      .catch(() => {});
+
     getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
@@ -116,11 +132,11 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
             const valor = (medicion.pollingValue ?? '').trim();
             return { ...sensor, enFuego: valor === '1' };
           }
-          const temp = parseFloat((medicion.pollingValue ?? '').trim());
+          const temp = parseFloat((medicion.pollingValue ?? '').replace(',', '.').trim());
           return {
             ...sensor,
             temperatura: isNaN(temp) ? sensor.temperatura : temp,
-            enFuego: !isNaN(temp) && temp > UMBRAL_TEMPERATURA,
+            enFuego: !isNaN(temp) && temp > umbralRef.current,
           };
         }
         return sensor;
@@ -227,6 +243,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         setIntervaloMedicion,
         cargandoCeldas,
         refreshCeldas,
+        umbralTemperatura,
       }}
     >
       {children}

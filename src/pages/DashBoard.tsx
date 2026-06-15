@@ -11,6 +11,7 @@ import AlertasRecientes from '../components/dashboard/AlertasRecientes';
 import FireAlert from '../components/dashboard/FireAlert';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
+import { websocketService } from '../services/websocketService';
 import type { DashboardStats, TemperatureReading, TimeRange } from '../types';
 
 const MotionBox = motion.create(Box);
@@ -25,7 +26,7 @@ const CONNECTION_STATUS_LABELS: Record<string, { label: string; color: string }>
 };
 
 const DashboardPage = () => {
-  const { celdas, connectionStatus, lastUpdate: wsLastUpdate } = useSensorData();
+  const { celdas, connectionStatus, lastUpdate: wsLastUpdate, umbralTemperatura } = useSensorData();
   const [temperatureData, setTemperatureData] = useState<TemperatureReading[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +51,7 @@ const DashboardPage = () => {
     let totalSensores = 0;
     celdas.forEach((celda) => {
       celda.sensores.forEach((sensor) => {
-        if (sensor.temperatura > 50) totalSensoresAlerta++;
+        if (sensor.temperatura > umbralTemperatura) totalSensoresAlerta++;
         totalTemp += sensor.temperatura;
         totalSensores++;
       });
@@ -61,9 +62,9 @@ const DashboardPage = () => {
       posiblesIncendios,
       sensoresEnAlerta: totalSensoresAlerta,
       temperaturaPromedio: totalSensores > 0 ? Math.round(totalTemp / totalSensores) : 0,
-      umbralTemperatura: 50,
+      umbralTemperatura,
     };
-  }, [celdas]);
+  }, [celdas, umbralTemperatura]);
 
   useEffect(() => {
     if (wsLastUpdate) {
@@ -74,12 +75,31 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const currentCount = stats.posiblesIncendios;
-    if (currentCount > prevFireCountRef.current) {
-      setFireAlertDismissed(false);
-      setAlertRefreshKey((k) => k + 1);
-    }
+    const prevCount = prevFireCountRef.current;
     prevFireCountRef.current = currentCount;
+
+    if (currentCount <= prevCount) return;
+
+    setFireAlertDismissed(false);
+    // Delay so the backend has time to finish writing the event log entry
+    // before we fetch it (the DB write happens after the WS broadcast).
+    const timer = setTimeout(() => setAlertRefreshKey((k) => k + 1), 1000);
+    return () => clearTimeout(timer);
   }, [stats.posiblesIncendios]);
+
+  // WarningFired covers temperature-threshold alerts (type 4) on every polling
+  // cycle, including cases where posiblesIncendios doesn't change.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const unsub = websocketService.onWarningFired(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => setAlertRefreshKey((k) => k + 1), 1000);
+    });
+    return () => {
+      unsub();
+      clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     loadData(timeRange);

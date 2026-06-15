@@ -289,7 +289,7 @@ export const dataService = {
       const cellId = sensorToCellId.get(polling.sensorId);
       if (cellId === undefined) return;
 
-      const value = parseFloat(polling.pollingValue);
+      const value = parseFloat(polling.pollingValue.replace(',', '.'));
       if (isNaN(value)) return;
 
       const date = new Date(polling.dateTime);

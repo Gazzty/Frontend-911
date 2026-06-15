@@ -45,11 +45,13 @@ const AlertasRecientes = ({ refreshKey = 0 }: AlertasRecientesProps) => {
           Alertas recientes
         </Text>
 
-        <VStack gap={3} align="stretch">
-          {alertas.map((alerta, index) => (
-            <AlertaCard key={`${alerta.alertLogTypeId}-${alerta.date}-${index}`} alerta={alerta} index={index} />
-          ))}
-        </VStack>
+        <Box maxH="490px" overflowY="auto">
+          <VStack gap={3} align="stretch">
+            {alertas.map((alerta, index) => (
+              <AlertaCard key={`${alerta.alertLogTypeId}-${alerta.date}-${index}`} alerta={alerta} index={index} />
+            ))}
+          </VStack>
+        </Box>
       </Box>
     </MotionBox>
   );
