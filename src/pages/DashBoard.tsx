@@ -34,6 +34,7 @@ const DashboardPage = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [fireAlertDismissed, setFireAlertDismissed] = useState(false);
+  const [alertRefreshKey, setAlertRefreshKey] = useState(0);
   const prevFireCountRef = useRef(0);
 
   const celdasEnFuego = useMemo(
@@ -75,6 +76,7 @@ const DashboardPage = () => {
     const currentCount = stats.posiblesIncendios;
     if (currentCount > prevFireCountRef.current) {
       setFireAlertDismissed(false);
+      setAlertRefreshKey((k) => k + 1);
     }
     prevFireCountRef.current = currentCount;
   }, [stats.posiblesIncendios]);
@@ -322,7 +324,7 @@ const DashboardPage = () => {
             </GridItem>
           </Grid>
 
-          <AlertasRecientes />
+          <AlertasRecientes refreshKey={alertRefreshKey} />
         </VStack>
       </Box>
     </>

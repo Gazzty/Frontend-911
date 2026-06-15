@@ -1,15 +1,17 @@
 import * as signalR from '@microsoft/signalr';
-import type { Medicion } from '../types';
+import type { Medicion, SensorConnectionInfo } from '../types';
 
 export type ConnectionStatus = 'conectando' | 'conectado' | 'desconectado' | 'error';
 
 type MessageCallback = (mediciones: Medicion[]) => void;
 type StatusCallback = (status: ConnectionStatus) => void;
+type SensorConnectionInfoCallback = (info: SensorConnectionInfo) => void;
 
 class WebSocketService {
   private connection: signalR.HubConnection | null = null;
   private messageCallbacks: MessageCallback[] = [];
   private statusCallbacks: StatusCallback[] = [];
+  private sensorConnectionInfoCallbacks: SensorConnectionInfoCallback[] = [];
   private _status: ConnectionStatus = 'desconectado';
 
   get status(): ConnectionStatus {
@@ -42,6 +44,10 @@ class WebSocketService {
 
     connection.on('SensorPollings', (mediciones: Medicion[]) => {
       this.messageCallbacks.forEach((cb) => cb(mediciones));
+    });
+
+    connection.on('SensorConnectionInfo', (info: SensorConnectionInfo) => {
+      this.sensorConnectionInfoCallbacks.forEach((cb) => cb(info));
     });
 
     connection.onreconnecting(() => {
@@ -106,6 +112,15 @@ class WebSocketService {
     this.statusCallbacks.push(callback);
     return () => {
       this.statusCallbacks = this.statusCallbacks.filter((cb) => cb !== callback);
+    };
+  }
+
+  onSensorConnectionInfo(callback: SensorConnectionInfoCallback): () => void {
+    this.sensorConnectionInfoCallbacks.push(callback);
+    return () => {
+      this.sensorConnectionInfoCallbacks = this.sensorConnectionInfoCallbacks.filter(
+        (cb) => cb !== callback
+      );
     };
   }
 }
