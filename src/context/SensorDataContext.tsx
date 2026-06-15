@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
 import type { Medicion, Celda } from '../types';
 import { getCellsFull, type Cell } from '../api/cellApi';
+import { toaster } from '../lib/toaster';
 
 interface SensorDataContextType {
   /** Mediciones crudas del WebSocket (último batch procesado) */
@@ -186,9 +187,30 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       setConnectionStatus(status);
     });
 
+    const unsubConnectionInfo = websocketService.onSensorConnectionInfo((info) => {
+      const sensorLabel = info.sensorId != null ? `Sensor ${info.sensorId}` : 'Sensor';
+      const cellLabel = info.cellDescription ? ` — ${info.cellDescription}` : '';
+      if (info.isConnected) {
+        toaster.create({
+          title: `${sensorLabel} conectado`,
+          description: `${sensorLabel}${cellLabel} se conectó correctamente.`,
+          type: 'success',
+          duration: 4000,
+        });
+      } else {
+        toaster.create({
+          title: `${sensorLabel} desconectado`,
+          description: `${sensorLabel}${cellLabel} se desconectó o reportó una medición errónea.`,
+          type: 'error',
+          duration: 5000,
+        });
+      }
+    });
+
     return () => {
       unsubMessage();
       unsubStatus();
+      unsubConnectionInfo();
       websocketService.stop();
     };
   }, [procesarBuffer]);

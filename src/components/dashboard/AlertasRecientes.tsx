@@ -8,7 +8,11 @@ const MotionBox = motion.create(Box);
 
 const ALERT_TYPES = [2, 4]; // Fire, WarningFire
 
-const AlertasRecientes = () => {
+interface AlertasRecientesProps {
+  refreshKey?: number;
+}
+
+const AlertasRecientes = ({ refreshKey = 0 }: AlertasRecientesProps) => {
   const [alertas, setAlertas] = useState<EventLogItem[]>([]);
 
   useEffect(() => {
@@ -19,7 +23,7 @@ const AlertasRecientes = () => {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [refreshKey]);
 
   if (alertas.length === 0) return null;
 
