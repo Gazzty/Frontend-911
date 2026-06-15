@@ -108,7 +108,7 @@ const Navbar = () => {
               whiteSpace="nowrap"
               display={{ base: 'none', sm: 'block' }}
             >
-              Sistema de incendios
+              FiredApp
             </Text>
           </Flex>
 

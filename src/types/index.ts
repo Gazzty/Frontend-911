@@ -43,6 +43,13 @@ export interface Medicion {
   sensorId: number | null;
 }
 
+export interface SensorConnectionInfo {
+  sensorId: number | null;
+  isConnected: boolean;
+  cellDescription?: string;
+  hardwareRouteId?: number | null;
+}
+
 export type TimeRange = 'year' | 'month' | 'week' | 'day';
 
 export interface Config {
