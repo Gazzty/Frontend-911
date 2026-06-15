@@ -32,7 +32,7 @@ export default function Layout() {
                 <div className="bg-gradient-to-r from-orange-500 to-red-500 p-2 rounded-lg mr-3">
                   <Flame className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl">Sistema Incendios</span>
+                <span className="text-xl">FiredApp</span>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
                 {navItems.map((item) => (
