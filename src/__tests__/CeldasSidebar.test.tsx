@@ -29,9 +29,9 @@ const mockCeldas: Celda[] = [
 ]
 
 describe('CeldasSidebar – Map cells data', () => {
-  it('renders the "Lista de Celdas" heading', () => {
+  it('renders the "Celdas" heading', () => {
     render(<CeldasSidebar celdas={mockCeldas} />)
-    expect(screen.getByText('Lista de Celdas')).toBeInTheDocument()
+    expect(screen.getByText('Celdas')).toBeInTheDocument()
   })
 
   it('displays all cell names from the celdas prop', () => {
