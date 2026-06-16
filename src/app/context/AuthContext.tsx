@@ -1,9 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-interface User {
-  email: string;
-  name: string;
-}
+import { authService } from '../../services/authService';
+import type { User } from '../../types';
 
 interface AuthContextType {
   user: User | null;
@@ -15,33 +12,26 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => authService.getCurrentUser());
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication
-    if (email && password) {
-      setUser({
-        email,
-        name: email.split('@')[0],
-      });
+    try {
+      const loggedUser = await authService.login(email, password);
+      authService.saveUser(loggedUser);
+      setUser(loggedUser);
       return true;
+    } catch {
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        isAuthenticated: !!user,
-      }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

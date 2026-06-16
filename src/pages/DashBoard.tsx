@@ -44,6 +44,7 @@ const DashboardPage = () => {
     let totalSensores = 0;
     celdas.forEach((celda) => {
       celda.sensores.forEach((sensor) => {
+        if (sensor.tipo !== 'temperatura') return;
         if (sensor.temperatura > umbralTemperatura) totalSensoresAlerta++;
         totalTemp += sensor.temperatura;
         totalSensores++;

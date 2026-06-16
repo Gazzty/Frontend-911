@@ -4,31 +4,37 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import MapView from './pages/MapView';
 import Settings from './pages/Settings';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Navigate to="/dashboard" replace />,
-  },
   {
     path: '/login',
     element: <Login />,
   },
   {
     path: '/',
-    element: <Layout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        path: 'dashboard',
-        element: <Dashboard />,
-      },
-      {
-        path: 'map',
-        element: <MapView />,
-      },
-      {
-        path: 'settings',
-        element: <Settings />,
+        element: <Layout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: <Dashboard />,
+          },
+          {
+            path: 'map',
+            element: <MapView />,
+          },
+          {
+            path: 'settings',
+            element: <Settings />,
+          },
+        ],
       },
     ],
   },
