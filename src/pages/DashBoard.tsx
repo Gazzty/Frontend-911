@@ -51,8 +51,10 @@ const DashboardPage = () => {
     let totalSensores = 0;
     celdas.forEach((celda) => {
       celda.sensores.forEach((sensor) => {
+        if ((sensor.tipo === 'temperatura' && sensor.temperatura > umbralTemperatura) || sensor.enFuego) {
+          totalSensoresAlerta++;
+        }
         if (sensor.tipo !== 'temperatura') return;
-        if (sensor.temperatura > umbralTemperatura) totalSensoresAlerta++;
         totalTemp += sensor.temperatura;
         totalSensores++;
       });
@@ -291,19 +293,16 @@ const DashboardPage = () => {
             </MotionBox>
           )}
 
-          {/* Stat cards: 2 cols on mobile, 4 on desktop */}
-          <Grid templateColumns={{ base: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }} gap={{ base: 3, md: 4 }}>
+          {/* Stat cards: 2 cols on mobile, 3 on desktop */}
+          <Grid templateColumns={{ base: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }} gap={{ base: 3, md: 4 }}>
             <GridItem>
               <StatCard title="Celdas Activas" value={stats.celdasActivas} subtitle={`de ${stats.celdasTotales} totales`} delay={0} />
             </GridItem>
             <GridItem>
-              <StatCard title="Posibles incendios" value={stats.posiblesIncendios} subtitle="Requiere atención" delay={0.1} />
+              <StatCard title="Sensores en alerta" value={stats.sensoresEnAlerta} subtitle="Requiere atención" delay={0.1} />
             </GridItem>
             <GridItem>
-              <StatCard title="Sensores en Alerta" value={stats.sensoresEnAlerta} subtitle="Por encima del umbral" delay={0.2} />
-            </GridItem>
-            <GridItem>
-              <StatCard title="Temp. Promedio" value={`${stats.temperaturaPromedio}°C`} subtitle={`Umbral ${stats.umbralTemperatura}°C`} delay={0.3} />
+              <StatCard title="Temp. Promedio" value={`${stats.temperaturaPromedio}°C`} subtitle={`Umbral ${stats.umbralTemperatura}°C`} delay={0.2} />
             </GridItem>
           </Grid>
 

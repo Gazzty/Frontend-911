@@ -6,28 +6,43 @@ import { useSensorData } from '../context/SensorDataContext';
 const RUTAS_EXCLUIDAS = ['/login', '/register'];
 
 const GlobalFireAlert = () => {
-  const { celdas } = useSensorData();
+  const { celdas, umbralTemperatura } = useSensorData();
   const location = useLocation();
   const [dismissed, setDismissed] = useState(false);
-  const prevCountRef = useRef(0);
+  const prevFireCountRef = useRef(0);
+  const prevWarnCountRef = useRef(0);
 
   const celdasEnFuego = useMemo(
     () => celdas.filter((c) => c.sensores.some((s) => s.enFuego)),
     [celdas]
   );
 
+  const celdasEnAlertaTemp = useMemo(
+    () => celdas.filter(
+      (c) =>
+        !c.sensores.some((s) => s.enFuego) &&
+        c.sensores.some((s) => s.tipo === 'temperatura' && s.temperatura > umbralTemperatura)
+    ),
+    [celdas, umbralTemperatura]
+  );
+
   useEffect(() => {
-    if (celdasEnFuego.length > prevCountRef.current) {
+    if (celdasEnFuego.length > prevFireCountRef.current || celdasEnAlertaTemp.length > prevWarnCountRef.current) {
       setDismissed(false);
     }
-    prevCountRef.current = celdasEnFuego.length;
-  }, [celdasEnFuego.length]);
+    prevFireCountRef.current = celdasEnFuego.length;
+    prevWarnCountRef.current = celdasEnAlertaTemp.length;
+  }, [celdasEnFuego.length, celdasEnAlertaTemp.length]);
 
   if (RUTAS_EXCLUIDAS.includes(location.pathname)) return null;
 
+  const alertType = celdasEnFuego.length > 0 ? 'fire' : 'warning';
+  const celdasAlerta = celdasEnFuego.length > 0 ? celdasEnFuego : celdasEnAlertaTemp;
+
   return (
     <FireAlert
-      celdasEnFuego={dismissed ? [] : celdasEnFuego}
+      celdasEnFuego={dismissed ? [] : celdasAlerta}
+      alertType={alertType}
       onDismiss={() => setDismissed(true)}
     />
   );
