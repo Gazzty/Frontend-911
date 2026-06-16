@@ -8,6 +8,7 @@ import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
 import CeldasList from '../components/dashboard/CeldasList';
 import AlertasRecientes from '../components/dashboard/AlertasRecientes';
+import FireAlert from '../components/dashboard/FireAlert';
 import { dataService } from '../services/dataService';
 import { useSensorData } from '../context/SensorDataContext';
 import { websocketService } from '../services/websocketService';
@@ -33,8 +34,14 @@ const DashboardPage = () => {
   const [hasError, setHasError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [fireAlertDismissed, setFireAlertDismissed] = useState(false);
   const [alertRefreshKey, setAlertRefreshKey] = useState(0);
   const prevFireCountRef = useRef(0);
+
+  const celdasEnFuego = useMemo(
+    () => celdas.filter((c) => c.sensores.some((s) => s.enFuego)),
+    [celdas]
+  );
 
   const stats = useMemo<DashboardStats>(() => {
     const celdasActivas = celdas.filter((c) => c.activa).length;
@@ -72,6 +79,7 @@ const DashboardPage = () => {
     const prevCount = prevFireCountRef.current;
     prevFireCountRef.current = currentCount;
     if (currentCount <= prevCount) return;
+    setFireAlertDismissed(false);
     const timer = setTimeout(() => setAlertRefreshKey((k) => k + 1), 1000);
     return () => clearTimeout(timer);
   }, [stats.posiblesIncendios]);
@@ -178,6 +186,10 @@ const DashboardPage = () => {
 
   return (
     <>
+      <FireAlert
+        celdasEnFuego={fireAlertDismissed ? [] : celdasEnFuego}
+        onDismiss={() => setFireAlertDismissed(true)}
+      />
       <Navbar />
       <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
         <VStack gap={{ base: 4, md: 6 }} align="stretch">
