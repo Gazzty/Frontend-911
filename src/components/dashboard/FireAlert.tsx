@@ -7,10 +7,43 @@ const MotionBox = motion.create(Box);
 
 interface FireAlertProps {
   celdasEnFuego: Celda[];
+  alertType?: 'fire' | 'warning';
   onDismiss: () => void;
 }
 
-const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
+const FIRE_THEME = {
+  pulseBg: 'red.600',
+  shadow: '0 0 80px rgba(255, 50, 0, 0.6)',
+  border: 'red.500',
+  iconBg: 'red.500',
+  titleColor: 'red.700',
+  title: '¡ALERTA DE INCENDIO!',
+  cardBg: 'red.50',
+  cardBorder: 'red.200',
+  cardText: 'red.700',
+  markerColor: '#E53E3E',
+  palette: 'red',
+  footer: 'Contacte a los servicios de emergencia inmediatamente.',
+} as const;
+
+const WARNING_THEME = {
+  pulseBg: 'orange.500',
+  shadow: '0 0 80px rgba(255, 140, 0, 0.6)',
+  border: 'orange.400',
+  iconBg: 'orange.500',
+  titleColor: 'orange.700',
+  title: 'ALERTA DE PROBABILIDAD DE INCENDIO',
+  cardBg: 'orange.50',
+  cardBorder: 'orange.200',
+  cardText: 'orange.700',
+  markerColor: '#DD6B20',
+  palette: 'orange',
+  footer: 'Monitoree la situación y prepare los protocolos de emergencia.',
+} as const;
+
+const FireAlert = ({ celdasEnFuego, alertType = 'fire', onDismiss }: FireAlertProps) => {
+  const theme = alertType === 'fire' ? FIRE_THEME : WARNING_THEME;
+
   return (
     <AnimatePresence>
       {celdasEnFuego.length > 0 && (
@@ -31,11 +64,11 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
           justifyContent="center"
           bg="rgba(0,0,0,0.85)"
         >
-          {/* Fondo pulsante rojo */}
+          {/* Fondo pulsante */}
           <MotionBox
             position="absolute"
             inset={0}
-            bg="red.600"
+            bg={theme.pulseBg}
             animate={{ opacity: [0.15, 0.3, 0.15] }}
             transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -54,9 +87,9 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
             mx={4}
             maxW="560px"
             w="full"
-            boxShadow="0 0 80px rgba(255, 50, 0, 0.6)"
+            boxShadow={theme.shadow}
             borderWidth="3px"
-            borderColor="red.500"
+            borderColor={theme.border}
             textAlign="center"
           >
             {/* Icono animado */}
@@ -67,7 +100,7 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
               mb={4}
             >
               <Box
-                bg="red.500"
+                bg={theme.iconBg}
                 borderRadius="full"
                 p={5}
                 display="inline-flex"
@@ -79,14 +112,14 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
             </MotionBox>
 
             <VStack gap={4}>
-              <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="800" color="red.700" lineHeight="1.2">
-                ¡ALERTA DE INCENDIO!
+              <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="800" color={theme.titleColor} lineHeight="1.2">
+                {theme.title}
               </Text>
 
               <Text fontSize="md" color="gray.600" fontWeight="500">
                 {celdasEnFuego.length === 1
-                  ? 'Se detectó un incendio en el siguiente sector:'
-                  : `Se detectaron incendios en ${celdasEnFuego.length} sectores:`}
+                  ? 'Se detectó una alerta en el siguiente sector:'
+                  : `Se detectaron alertas en ${celdasEnFuego.length} sectores:`}
               </Text>
 
               {/* Lista de celdas */}
@@ -94,9 +127,9 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
                 {celdasEnFuego.map((celda) => (
                   <HStack
                     key={celda.id}
-                    bg="red.50"
+                    bg={theme.cardBg}
                     borderWidth="1px"
-                    borderColor="red.200"
+                    borderColor={theme.cardBorder}
                     borderRadius="lg"
                     px={4}
                     py={3}
@@ -104,8 +137,8 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
                     justify="center"
                     gap={2}
                   >
-                    <FaMapMarkerAlt color="#E53E3E" size={16} />
-                    <Text fontSize="lg" fontWeight="700" color="red.700">
+                    <FaMapMarkerAlt color={theme.markerColor} size={16} />
+                    <Text fontSize="lg" fontWeight="700" color={theme.cardText}>
                       {celda.nombre}
                     </Text>
                   </HStack>
@@ -113,13 +146,13 @@ const FireAlert = ({ celdasEnFuego, onDismiss }: FireAlertProps) => {
               </VStack>
 
               <Text fontSize="sm" color="gray.500" mt={1}>
-                Contacte a los servicios de emergencia inmediatamente.
+                {theme.footer}
               </Text>
 
               <Button
                 mt={2}
                 size="lg"
-                colorPalette="red"
+                colorPalette={theme.palette}
                 variant="outline"
                 onClick={onDismiss}
                 w="full"
