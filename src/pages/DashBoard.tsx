@@ -43,6 +43,11 @@ const DashboardPage = () => {
     [celdas]
   );
 
+  const celdasEnAlertaTemp = useMemo(
+    () => celdas.filter((c) => c.sensores.some((s) => s.tipo === 'temperatura' && s.temperatura > umbralTemperatura)),
+    [celdas, umbralTemperatura]
+  );
+
   const stats = useMemo<DashboardStats>(() => {
     const celdasActivas = celdas.filter((c) => c.activa).length;
     const posiblesIncendios = celdas.filter((c) => c.sensores.some((s) => s.enFuego)).length;
@@ -190,6 +195,7 @@ const DashboardPage = () => {
     <>
       <FireAlert
         celdasEnFuego={fireAlertDismissed ? [] : celdasEnFuego}
+        celdasEnAlertaTemp={fireAlertDismissed ? [] : celdasEnAlertaTemp}
         onDismiss={() => setFireAlertDismissed(true)}
       />
       <Navbar />

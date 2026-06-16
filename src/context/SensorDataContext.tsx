@@ -86,6 +86,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
+        const ahora = Date.now();
+        celdasDelApi.forEach((c) => {
+          lastMedicionAtRef.current[c.id] = ahora;
+        });
         celdasRef.current = celdasDelApi;
         setCeldas(celdasDelApi);
 
@@ -107,6 +111,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     try {
       const cells = await getCellsFull();
       const celdasDelApi = cells.map(cellToCelda);
+      const ahora = Date.now();
+      celdasDelApi.forEach((c) => {
+        lastMedicionAtRef.current[c.id] = ahora;
+      });
       celdasRef.current = celdasDelApi;
       setCeldas(celdasDelApi);
       procesarBuffer();
@@ -128,12 +136,13 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
             : nuevasMediciones;
         const medicion = medicionesDelSensor[medicionesDelSensor.length - 1];
         if (medicion) {
+          const rawValue = (medicion.pollingValue ?? '').trim();
+          if (rawValue.toLowerCase() === 'e') return sensor;
           celdaModificada = true;
           if (sensor.tipo === 'fuego') {
-            const valor = (medicion.pollingValue ?? '').trim();
-            return { ...sensor, enFuego: valor === '1' };
+            return { ...sensor, enFuego: rawValue === '1' };
           }
-          const temp = parseFloat((medicion.pollingValue ?? '').replace(',', '.').trim());
+          const temp = parseFloat(rawValue.replace(',', '.'));
           return {
             ...sensor,
             temperatura: isNaN(temp) ? sensor.temperatura : temp,
