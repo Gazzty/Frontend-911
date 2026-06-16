@@ -53,8 +53,8 @@ const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
 
           <HStack gap={4}>
             {tempSensor && (
-              <Text fontWeight="bold" fontSize="sm">
-                {tempSensor.temperatura}°C
+              <Text fontWeight="bold" fontSize="sm" color={celda.activa ? undefined : 'gray.400'}>
+                {celda.activa ? `${tempSensor.temperatura}°C` : '--'}
               </Text>
             )}
             {enAlerta ? (

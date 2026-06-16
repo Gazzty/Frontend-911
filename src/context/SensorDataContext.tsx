@@ -86,6 +86,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
+        const ahora = Date.now();
+        celdasDelApi.forEach((c) => {
+          lastMedicionAtRef.current[c.id] = ahora;
+        });
         celdasRef.current = celdasDelApi;
         setCeldas(celdasDelApi);
 
@@ -107,6 +111,10 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     try {
       const cells = await getCellsFull();
       const celdasDelApi = cells.map(cellToCelda);
+      const ahora = Date.now();
+      celdasDelApi.forEach((c) => {
+        lastMedicionAtRef.current[c.id] = ahora;
+      });
       celdasRef.current = celdasDelApi;
       setCeldas(celdasDelApi);
       procesarBuffer();
