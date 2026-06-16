@@ -74,9 +74,6 @@ export default function Login() {
               Iniciar Sesión
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-500">
-            <p>Demo: use cualquier email y contraseña</p>
-          </div>
         </CardContent>
       </Card>
     </div>
