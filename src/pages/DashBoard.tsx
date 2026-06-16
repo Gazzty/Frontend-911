@@ -2,7 +2,7 @@ import { Box, VStack, Text, Grid, GridItem, Button, Flex, IconButton, HStack } f
 import { createToaster } from '@chakra-ui/react';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaSync, FaFire } from 'react-icons/fa';
+import { FaSync, FaFire, FaTimes } from 'react-icons/fa';
 import Navbar from '../components/layout/Navbar';
 import StatCard from '../components/dashboard/StatCard';
 import TemperatureChart from '../components/dashboard/TemperatureChart';
