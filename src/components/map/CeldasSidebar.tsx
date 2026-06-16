@@ -43,11 +43,11 @@ const CeldasSidebar = ({ celdas, onCeldaClick }: CeldasSidebarProps) => {
 
   return (
     <Box
-      bg="white"
+      bg="bg.default"
       borderRadius="xl"
       boxShadow="0 4px 24px rgba(0,0,0,0.08)"
       borderWidth="1px"
-      borderColor="gray.200"
+      borderColor="border.default"
       h={{ base: 'auto', lg: '600px' }}
       maxH={{ base: '300px', lg: '600px' }}
       overflow="hidden"
@@ -55,33 +55,33 @@ const CeldasSidebar = ({ celdas, onCeldaClick }: CeldasSidebarProps) => {
       flexDirection="column"
     >
       {/* Header */}
-      <Box px={5} pt={5} pb={4} borderBottomWidth="1px" borderColor="gray.100">
+      <Box px={5} pt={5} pb={4} borderBottomWidth="1px" borderColor="border.default">
         <HStack justify="space-between" mb={4}>
-          <Text fontSize="md" fontWeight="700" color="gray.800">
+          <Text fontSize="md" fontWeight="700" color="fg.default">
             Celdas
           </Text>
-          <Box bg="gray.100" px={2} py={0.5} borderRadius="full">
-            <Text fontSize="xs" fontWeight="600" color="gray.500">{celdas.length} total</Text>
+          <Box bg="bg.muted" px={2} py={0.5} borderRadius="full">
+            <Text fontSize="xs" fontWeight="600" color="fg.muted">{celdas.length} total</Text>
           </Box>
         </HStack>
 
         {/* Stats */}
-        <HStack gap={0} bg="gray.50" borderRadius="lg" overflow="hidden" borderWidth="1px" borderColor="gray.100">
+        <HStack gap={0} bg="bg.subtle" borderRadius="lg" overflow="hidden" borderWidth="1px" borderColor="border.default">
           {[
             { value: alertCount, label: 'Alerta', color: '#E53E3E' },
             { value: activasCount, label: 'Activas', color: '#38A169' },
             { value: inactivasCount, label: 'Inactivas', color: '#A0AEC0' },
           ].map(({ value, label, color }, i) => (
-            <Box key={label} flex={1} py={2} textAlign="center" borderLeftWidth={i > 0 ? '1px' : '0'} borderColor="gray.200">
+            <Box key={label} flex={1} py={2} textAlign="center" borderLeftWidth={i > 0 ? '1px' : '0'} borderColor="border.default">
               <Text fontSize="lg" fontWeight="800" color={color} lineHeight="1">{value}</Text>
-              <Text fontSize="10px" color="gray.400" mt={0.5} fontWeight="500">{label}</Text>
+              <Text fontSize="10px" color="fg.muted" mt={0.5} fontWeight="500">{label}</Text>
             </Box>
           ))}
         </HStack>
       </Box>
 
       {/* Filtros */}
-      <HStack gap={1} px={4} py={3} borderBottomWidth="1px" borderColor="gray.100" flexShrink={0}>
+      <HStack gap={1} px={4} py={3} borderBottomWidth="1px" borderColor="border.default" flexShrink={0}>
         {filtros.map(({ key, label, count, activeColor, activeBg, activeBorder, dotColor }) => {
           const isActive = filtro === key;
           return (
@@ -98,16 +98,16 @@ const CeldasSidebar = ({ celdas, onCeldaClick }: CeldasSidebarProps) => {
               cursor="pointer"
               onClick={() => setFiltro(key)}
               transition="all 0.15s ease"
-              _hover={{ bg: isActive ? activeBg : 'gray.50' }}
+              _hover={{ bg: isActive ? activeBg : 'bg.subtle' }}
             >
               <VStack gap={0.5}>
                 <HStack gap={1} justify="center">
                   <Box w="6px" h="6px" borderRadius="full" bg={dotColor} flexShrink={0} />
-                  <Text fontSize="10px" fontWeight={isActive ? '700' : '500'} color={isActive ? activeColor : 'gray.400'}>
+                  <Text fontSize="10px" fontWeight={isActive ? '700' : '500'} color={isActive ? activeColor : 'fg.muted'}>
                     {label}
                   </Text>
                 </HStack>
-                <Text fontSize="13px" fontWeight="700" color={isActive ? activeColor : 'gray.600'} lineHeight="1">
+                <Text fontSize="13px" fontWeight="700" color={isActive ? activeColor : 'fg.muted'} lineHeight="1">
                   {count}
                 </Text>
               </VStack>
@@ -130,7 +130,7 @@ const CeldasSidebar = ({ celdas, onCeldaClick }: CeldasSidebarProps) => {
           {celdasFiltradas.length === 0 && (
             <Box textAlign="center" py={10}>
               <Text fontSize="2xl" mb={2}>🔍</Text>
-              <Text fontSize="sm" color="gray.400" fontWeight="500">
+              <Text fontSize="sm" color="fg.muted" fontWeight="500">
                 No hay celdas con este filtro
               </Text>
             </Box>

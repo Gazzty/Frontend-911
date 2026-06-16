@@ -19,22 +19,22 @@ const StatCard = ({ title, value, subtitle, delay = 0 }: StatCardProps) => {
       whileHover={{ y: -4, boxShadow: 'lg' }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
         transition="all 0.3s ease"
       >
         <VStack align="start" gap={2}>
-          <Text fontSize="sm" color="gray.500" fontWeight="600">
+          <Text fontSize="sm" color="fg.muted" fontWeight="600">
             {title}
           </Text>
-          <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="700" color="brand.black">
+          <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="700" color="fg.default">
             {value}
           </Text>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color="fg.muted">
             {subtitle}
           </Text>
         </VStack>

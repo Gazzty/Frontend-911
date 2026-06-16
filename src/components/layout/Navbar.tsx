@@ -3,6 +3,7 @@ import { FaFire, FaThLarge, FaMap, FaCog, FaSignOutAlt, FaBars, FaTimes } from '
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authService } from '../../services/authService';
+import { ColorModeButton } from '../ui/color-mode';
 import { useState } from 'react';
 
 const MotionBox = motion.create(Box);
@@ -26,10 +27,10 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
         h="60px"
         borderBottom={isActive ? '3px solid' : '3px solid transparent'}
         borderColor={isActive ? 'brand.orange' : 'transparent'}
-        color={isActive ? 'brand.black' : 'gray.500'}
+        color={isActive ? 'fg.default' : 'fg.muted'}
         fontWeight={isActive ? '600' : '400'}
         cursor="pointer"
-        _hover={{ color: 'brand.black' }}
+        _hover={{ color: 'fg.default' }}
         transition="all 0.3s ease"
       >
         <Icon size={16} />
@@ -79,13 +80,13 @@ const Navbar = () => {
 
   return (
     <Box
-      bg="white"
+      bg="bg.default"
       boxShadow="sm"
       position="sticky"
       top={0}
       zIndex={1000}
       borderBottom="1px solid"
-      borderColor="gray.200"
+      borderColor="border.default"
       w="100%"
     >
       <Box maxW="1400px" mx="auto" px={{ base: 4, md: 6 }}>
@@ -145,9 +146,10 @@ const Navbar = () => {
             flexShrink={0}
             display={{ base: 'none', md: 'flex' }}
           >
+            <ColorModeButton />
             <Text
               fontSize="sm"
-              color="gray.500"
+              color="fg.muted"
               whiteSpace="nowrap"
               overflow="hidden"
               textOverflow="ellipsis"
@@ -187,9 +189,9 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <Box
           display={{ base: 'block', md: 'none' }}
-          bg="white"
+          bg="bg.default"
           borderTop="1px solid"
-          borderColor="gray.100"
+          borderColor="border.default"
           boxShadow="md"
         >
           {navItems.map((item) => (
@@ -209,11 +211,12 @@ const Navbar = () => {
             px={4}
             py={3}
             borderTop="1px solid"
-            borderColor="gray.100"
+            borderColor="border.default"
           >
+            <ColorModeButton />
             <Text
               fontSize="xs"
-              color="gray.500"
+              color="fg.muted"
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"

@@ -154,7 +154,7 @@ const DashboardPage = () => {
         <Navbar />
         <Box maxW="1300px" mx="auto" px={{ base: 4, md: 8, lg: 12 }} py={{ base: 4, md: 6, lg: 8 }}>
           <VStack gap={6}>
-            <Box bg="white" p={8} borderRadius="lg" boxShadow="sm" w="full" textAlign="center">
+            <Box bg="bg.default" p={8} borderRadius="lg" boxShadow="sm" w="full" textAlign="center">
               <MotionBox
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -163,7 +163,7 @@ const DashboardPage = () => {
                 <FaSync size={32} color="#FF4500" />
               </MotionBox>
               <Text mt={4} fontSize="lg" fontWeight="600">Cargando datos del sistema...</Text>
-              <Text fontSize="sm" color="gray.500" mt={2}>Obteniendo información en tiempo real</Text>
+              <Text fontSize="sm" color="fg.muted" mt={2}>Obteniendo información en tiempo real</Text>
             </Box>
           </VStack>
         </Box>
@@ -207,12 +207,12 @@ const DashboardPage = () => {
               <Text fontSize={{ base: 'xl', md: '2xl' }} fontWeight="700" mb={1}>
                 Dashboard
               </Text>
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" color="fg.muted">
                 Monitoreo en tiempo real del sistema de detección de incendios
               </Text>
               <HStack gap={2} mt={1} flexWrap="wrap">
                 {lastUpdate && (
-                  <Text fontSize="xs" color="gray.400">
+                  <Text fontSize="xs" color="fg.muted">
                     Última actualización: {formatLastUpdate()}
                   </Text>
                 )}
@@ -221,7 +221,7 @@ const DashboardPage = () => {
                     w={2} h={2} borderRadius="full"
                     bg={CONNECTION_STATUS_LABELS[connectionStatus]?.color || '#868E96'}
                   />
-                  <Text fontSize="xs" color="gray.400">
+                  <Text fontSize="xs" color="fg.muted">
                     {CONNECTION_STATUS_LABELS[connectionStatus]?.label || 'Desconocido'}
                   </Text>
                 </HStack>
@@ -326,10 +326,10 @@ const DashboardPage = () => {
                 <CeldasList celdas={celdas} />
               ) : (
                 <Box
-                  bg="white" p={6} borderRadius="lg" boxShadow="sm"
-                  borderWidth="1px" borderColor="gray.200" textAlign="center"
+                  bg="bg.default" p={6} borderRadius="lg" boxShadow="sm"
+                  borderWidth="1px" borderColor="border.default" textAlign="center"
                 >
-                  <Text color="gray.500">No hay celdas configuradas</Text>
+                  <Text color="fg.muted">No hay celdas configuradas</Text>
                 </Box>
               )}
             </GridItem>

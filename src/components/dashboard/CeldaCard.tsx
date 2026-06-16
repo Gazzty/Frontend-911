@@ -22,8 +22,8 @@ const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
     >
       <Box mb={2}>
         <HStack
-          bg={enAlerta ? 'red.50' : 'gray.100'}
-          _hover={{ bg: enAlerta ? 'red.100' : 'gray.200' }}
+          bg={enAlerta ? 'red.50' : 'bg.muted'}
+          _hover={{ bg: enAlerta ? 'red.100' : 'bg.input' }}
           borderRadius="md"
           py={3}
           px={4}
@@ -45,7 +45,7 @@ const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
               <Text fontWeight="600" fontSize="sm">
                 {celda.nombre}
               </Text>
-              <Text fontSize="xs" color="gray.500">
+              <Text fontSize="xs" color="fg.muted">
                 {celda.timestamp}
               </Text>
             </VStack>

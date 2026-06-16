@@ -299,11 +299,11 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
   };
 
   const inputStyle = (hasError: boolean) => ({
-    bg: 'gray.100',
+    bg: 'bg.input',
     borderWidth: hasError ? '2px' : '0',
     borderColor: hasError ? 'red.500' : 'transparent',
-    _hover: { bg: 'gray.200' },
-    _focus: { bg: 'white', borderWidth: '2px', borderColor: hasError ? 'red.500' : 'brand.orange' },
+    _hover: { bg: 'bg.muted' },
+    _focus: { bg: 'bg.default', borderWidth: '2px', borderColor: hasError ? 'red.500' : 'brand.orange' },
   });
 
   return (
@@ -313,7 +313,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" borderWidth="1px" borderColor="gray.200">
+        <Box bg="bg.default" p={6} borderRadius="lg" boxShadow="sm" borderWidth="1px" borderColor="border.default">
           {/* Header */}
           <HStack justify="space-between" mb={4}>
             <HStack gap={3}>
@@ -328,7 +328,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
               )}
               <Box>
                 <Text fontSize="lg" fontWeight="600">Gestión de Celdas</Text>
-                <Text fontSize="xs" color="gray.500" mt={1}>
+                <Text fontSize="xs" color="fg.muted" mt={1}>
                   {celdas.length} celda{celdas.length !== 1 ? 's' : ''} configurada{celdas.length !== 1 ? 's' : ''}
                 </Text>
               </Box>
@@ -361,8 +361,8 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
           {/* Cell list */}
           <VStack gap={2} align="stretch">
             {celdas.length === 0 ? (
-              <Box bg="gray.50" p={8} borderRadius="md" textAlign="center">
-                <Text color="gray.500" fontSize="sm">
+              <Box bg="bg.subtle" p={8} borderRadius="md" textAlign="center">
+                <Text color="fg.muted" fontSize="sm">
                   No hay celdas configuradas. Crea una nueva celda para comenzar.
                 </Text>
               </Box>
@@ -376,11 +376,11 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <HStack
-                    bg={selectedIds.has(celda.id) ? 'blue.50' : 'gray.100'}
+                    bg={selectedIds.has(celda.id) ? 'blue.50' : 'bg.muted'}
                     p={3} borderRadius="md" justify="space-between"
                     borderWidth="1px"
                     borderColor={selectedIds.has(celda.id) ? 'blue.200' : 'transparent'}
-                    _hover={{ bg: selectedIds.has(celda.id) ? 'blue.100' : 'gray.200' }}
+                    _hover={{ bg: selectedIds.has(celda.id) ? 'blue.100' : 'bg.input' }}
                     transition="all 0.2s ease"
                   >
                     <HStack gap={3}>
@@ -393,9 +393,9 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       <VStack align="start" gap={0}>
                         <Text fontWeight="600" fontSize="sm">{celda.nombre}</Text>
                         <HStack gap={3}>
-                          <Text fontSize="xs" color="gray.500">{celda.sensores.length} sensor{celda.sensores.length !== 1 ? 'es' : ''}</Text>
-                          <Text fontSize="xs" color="gray.400">•</Text>
-                          <Text fontSize="xs" color="gray.500">
+                          <Text fontSize="xs" color="fg.muted">{celda.sensores.length} sensor{celda.sensores.length !== 1 ? 'es' : ''}</Text>
+                          <Text fontSize="xs" color="fg.muted">•</Text>
+                          <Text fontSize="xs" color="fg.muted">
                             {celda.ubicacion.lat.toFixed(4)}, {celda.ubicacion.lng.toFixed(4)}
                           </Text>
                         </HStack>
@@ -445,7 +445,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             onClick={(e) => e.stopPropagation()}
           >
             <Box
-              bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
+              bg="bg.default" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
               w={{ base: '95vw', md: '520px' }} maxH="90vh" overflowY="auto"
             >
               <Text fontSize="lg" fontWeight="600" mb={5}>Crear Nueva Celda</Text>
@@ -546,7 +546,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                         return (
                           <HStack
                             key={s.sensorId}
-                            bg="gray.100" px={3} py={1.5} borderRadius="md"
+                            bg="bg.muted" px={3} py={1.5} borderRadius="md"
                             justify="space-between"
                           >
                             <HStack gap={2}>
@@ -554,7 +554,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                               <VStack align="start" gap={0}>
                                 <Text fontSize="sm">Sensor {s.sensorId}</Text>
                                 {full && (
-                                  <Text fontSize="xs" color="gray.500">{full.type.description}</Text>
+                                  <Text fontSize="xs" color="fg.muted">{full.type.description}</Text>
                                 )}
                               </VStack>
                             </HStack>
@@ -572,7 +572,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                   )}
 
                   {formSensores.length === 0 && (
-                    <Text fontSize="xs" color="gray.400">
+                    <Text fontSize="xs" color="fg.muted">
                       {sensoresDisponibles.length === 0
                         ? 'No hay sensores sin celda asignada disponibles.'
                         : 'Sin sensores asignados. Podés crear la celda sin sensores y agregarlos después.'}
@@ -620,7 +620,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             onClick={(e) => e.stopPropagation()}
           >
             <Box
-              bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
+              bg="bg.default" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl"
               w={{ base: '95vw', md: '520px' }} maxH="90vh" overflowY="auto"
             >
               <Text fontSize="lg" fontWeight="600" mb={5}>Editar Celda</Text>
@@ -717,14 +717,14 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       {editFormSensors.map((s) => (
                         <HStack
                           key={s.id}
-                          bg="gray.100" px={3} py={1.5} borderRadius="md"
+                          bg="bg.muted" px={3} py={1.5} borderRadius="md"
                           justify="space-between"
                         >
                           <HStack gap={2}>
                             <FaMicrochip size={12} color="#718096" />
                             <VStack align="start" gap={0}>
                               <Text fontSize="sm">Sensor {s.id}</Text>
-                              <Text fontSize="xs" color="gray.500">{s.type.description}</Text>
+                              <Text fontSize="xs" color="fg.muted">{s.type.description}</Text>
                             </VStack>
                           </HStack>
                           <IconButton
@@ -738,7 +738,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       ))}
                     </VStack>
                   ) : (
-                    <Text fontSize="xs" color="gray.400">Sin sensores asignados.</Text>
+                    <Text fontSize="xs" color="fg.muted">Sin sensores asignados.</Text>
                   )}
                 </Stack>
               </VStack>
@@ -781,7 +781,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Box bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
+            <Box bg="bg.default" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
               <Flex align="center" gap={3} mb={4}>
                 <Box
                   bg="red.100" borderRadius="full" p={2}
@@ -792,16 +792,16 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                 <Text fontSize="lg" fontWeight="600">Confirmar Eliminación</Text>
               </Flex>
 
-              <Text fontSize="sm" color="gray.600" mb={4}>
+              <Text fontSize="sm" color="fg.muted" mb={4}>
                 ¿Estás seguro que deseas eliminar la celda{' '}
                 <Text as="span" fontWeight="600">{selectedCelda.nombre}</Text>?{' '}
                 Esta acción no se puede deshacer.
               </Text>
 
-              <Box bg="gray.50" p={3} borderRadius="md" mb={4}>
-                <Text fontSize="xs" color="gray.500" mb={1}>Información de la celda:</Text>
-                <Text fontSize="xs" color="gray.700">• Sensores: {selectedCelda.sensores.length}</Text>
-                <Text fontSize="xs" color="gray.700">
+              <Box bg="bg.subtle" p={3} borderRadius="md" mb={4}>
+                <Text fontSize="xs" color="fg.muted" mb={1}>Información de la celda:</Text>
+                <Text fontSize="xs" color="fg.default">• Sensores: {selectedCelda.sensores.length}</Text>
+                <Text fontSize="xs" color="fg.default">
                   • Estado: {selectedCelda.activa ? 'Activa' : 'Inactiva'}
                 </Text>
               </Box>
@@ -843,7 +843,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Box bg="white" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
+            <Box bg="bg.default" p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="xl" w={{ base: '90vw', md: '400px' }}>
               <Flex align="center" gap={3} mb={4}>
                 <Box
                   bg="red.100" borderRadius="full" p={2}
@@ -854,7 +854,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                 <Text fontSize="lg" fontWeight="600">Eliminar {selectedIds.size} celda{selectedIds.size !== 1 ? 's' : ''}</Text>
               </Flex>
 
-              <Text fontSize="sm" color="gray.600" mb={4}>
+              <Text fontSize="sm" color="fg.muted" mb={4}>
                 ¿Estás seguro que deseas eliminar las {selectedIds.size} celdas seleccionadas?
                 Esta acción no se puede deshacer.
               </Text>

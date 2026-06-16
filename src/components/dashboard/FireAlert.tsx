@@ -81,7 +81,7 @@ const FireAlert = ({ celdasEnFuego, alertType = 'fire', onDismiss }: FireAlertPr
             transition={{ duration: 0.4, type: 'spring', stiffness: 200 }}
             position="relative"
             zIndex={1}
-            bg="white"
+            bg="bg.default"
             borderRadius="2xl"
             p={{ base: 8, md: 12 }}
             mx={4}
@@ -116,7 +116,7 @@ const FireAlert = ({ celdasEnFuego, alertType = 'fire', onDismiss }: FireAlertPr
                 {theme.title}
               </Text>
 
-              <Text fontSize="md" color="gray.600" fontWeight="500">
+              <Text fontSize="md" color="fg.muted" fontWeight="500">
                 {celdasEnFuego.length === 1
                   ? 'Se detectó una alerta en el siguiente sector:'
                   : `Se detectaron alertas en ${celdasEnFuego.length} sectores:`}
@@ -145,7 +145,7 @@ const FireAlert = ({ celdasEnFuego, alertType = 'fire', onDismiss }: FireAlertPr
                 ))}
               </VStack>
 
-              <Text fontSize="sm" color="gray.500" mt={1}>
+              <Text fontSize="sm" color="fg.muted" mt={1}>
                 {theme.footer}
               </Text>
 

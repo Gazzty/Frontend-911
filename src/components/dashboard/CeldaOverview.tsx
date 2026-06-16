@@ -19,12 +19,12 @@ const CeldaOverview = ({ celdas }: CeldaOverviewProps) => {
       transition={{ duration: 0.5, delay: 0.5 }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={6}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
       >
         <Text fontSize="lg" fontWeight="600" mb={4}>
           Resumen de Celdas Activas ({celdasActivas.length})
@@ -36,7 +36,7 @@ const CeldaOverview = ({ celdas }: CeldaOverviewProps) => {
               <CeldaCard key={celda.id} celda={celda} index={index} />
             ))
           ) : (
-            <Text color="gray.500" textAlign="center" py={4}>
+            <Text color="fg.muted" textAlign="center" py={4}>
               No hay celdas activas actualmente
             </Text>
           )}

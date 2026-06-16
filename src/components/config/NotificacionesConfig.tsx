@@ -106,12 +106,12 @@ const NotificacionesConfig = ({
       transition={{ duration: 0.5, delay: 0.1 }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={6}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
       >
         <Text fontSize="lg" fontWeight="600" mb={4}>
           Configuración de Notificaciones
@@ -146,7 +146,7 @@ const NotificacionesConfig = ({
               </Box>
             </HStack>
             <Stack gap={1}>
-              <Text fontSize="xs" color="gray.500">Dirección de email</Text>
+              <Text fontSize="xs" color="fg.muted">Dirección de email</Text>
               <Input
                 type="email"
                 value={emailDireccion}
@@ -155,14 +155,14 @@ const NotificacionesConfig = ({
                   if (emailError) validateEmail(e.target.value);
                 }}
                 onBlur={() => validateEmail(emailDireccion)}
-                bg="gray.100"
+                bg="bg.input"
                 borderWidth={emailError ? '2px' : '0'}
                 borderColor={emailError ? 'red.500' : 'transparent'}
                 size="sm"
                 disabled={!email}
-                _hover={{ bg: 'gray.200' }}
-                _focus={{ 
-                  bg: 'white', 
+                _hover={{ bg: 'bg.muted' }}
+                _focus={{
+                  bg: 'bg.default',
                   borderColor: emailError ? 'red.500' : 'brand.orange', 
                   borderWidth: '2px' 
                 }}
@@ -182,7 +182,7 @@ const NotificacionesConfig = ({
                 <Text fontSize="sm" fontWeight="600">
                   Notificaciones por Whatsapp
                 </Text>
-                <Text fontSize="xs" color="gray.500" mt={1}>
+                <Text fontSize="xs" color="fg.muted" mt={1}>
                   Requiere integración con WhatsApp Business API
                 </Text>
               </Box>
@@ -235,7 +235,7 @@ const NotificacionesConfig = ({
               </Box>
             </HStack>
             <Stack gap={1}>
-              <Text fontSize="xs" color="gray.500">Número de teléfono</Text>
+              <Text fontSize="xs" color="fg.muted">Número de teléfono</Text>
               <Input
                 type="tel"
                 value={telefono}
@@ -244,14 +244,14 @@ const NotificacionesConfig = ({
                   if (telefonoError) validateTelefono(e.target.value);
                 }}
                 onBlur={() => validateTelefono(telefono)}
-                bg="gray.100"
+                bg="bg.input"
                 borderWidth={telefonoError ? '2px' : '0'}
                 borderColor={telefonoError ? 'red.500' : 'transparent'}
                 size="sm"
                 disabled={!sms}
-                _hover={{ bg: 'gray.200' }}
-                _focus={{ 
-                  bg: 'white', 
+                _hover={{ bg: 'bg.muted' }}
+                _focus={{
+                  bg: 'bg.default',
                   borderColor: telefonoError ? 'red.500' : 'brand.orange', 
                   borderWidth: '2px' 
                 }}

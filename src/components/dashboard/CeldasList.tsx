@@ -18,12 +18,12 @@ const CeldasList = ({ celdas }: CeldasListProps) => {
       h={{ base: '320px', md: '380px', lg: '450px' }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
         h="100%"
         minH={0}
         display="flex"

@@ -211,7 +211,7 @@ const ConfiguracionPage = () => {
             <Text fontSize="2xl" fontWeight="700" mb={1}>
               Configuraciones
             </Text>
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="sm" color="fg.muted">
               Gestiona las configuraciones del sistema y sensores
             </Text>
           </Box>
@@ -219,11 +219,11 @@ const ConfiguracionPage = () => {
           <Box>
             <Stack
               direction="row"
-              bg="white"
+              bg="bg.default"
               p={2}
               borderRadius="lg"
               borderWidth="1px"
-              borderColor="gray.200"
+              borderColor="border.default"
               w="fit-content"
               gap={1}
             >

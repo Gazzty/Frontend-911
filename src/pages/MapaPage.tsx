@@ -29,7 +29,7 @@ const MapaPage = () => {
               Mapa de Sensores
             </Text>
             <HStack gap={2} flexWrap="wrap">
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" color="fg.muted">
                 Visualización geográfica de todos los sensores activos
               </Text>
               <HStack gap={1}>
@@ -37,7 +37,7 @@ const MapaPage = () => {
                   w={2} h={2} borderRadius="full"
                   bg={CONNECTION_STATUS_LABELS[connectionStatus]?.color || '#868E96'}
                 />
-                <Text fontSize="xs" color="gray.400">
+                <Text fontSize="xs" color="fg.muted">
                   {CONNECTION_STATUS_LABELS[connectionStatus]?.label || 'Desconocido'}
                 </Text>
               </HStack>

@@ -143,12 +143,12 @@ const UmbralesConfig = ({
       transition={{ duration: 0.5 }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={6}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
       >
         <Text fontSize="lg" fontWeight="600" mb={4}>
           Configuración de Umbrales
@@ -164,12 +164,12 @@ const UmbralesConfig = ({
               value={tempValue}
               onChange={handleTemperaturaChange}
               onBlur={() => tempValue !== '' && validateTemperatura(tempValue)}
-              bg="gray.100"
+              bg="bg.input"
               borderWidth={tempError ? '2px' : '0'}
               borderColor={tempError ? 'red.500' : 'transparent'}
-              _hover={{ bg: 'gray.200' }}
-              _focus={{ 
-                bg: 'white', 
+              _hover={{ bg: 'bg.muted' }}
+              _focus={{
+                bg: 'bg.default',
                 borderColor: tempError ? 'red.500' : 'brand.orange', 
                 borderWidth: '2px' 
               }}
@@ -180,7 +180,7 @@ const UmbralesConfig = ({
                 {tempError}
               </Text>
             )}
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="fg.muted">
               Temperatura por encima de la cual se considera alerta
             </Text>
           </Stack>
@@ -194,12 +194,12 @@ const UmbralesConfig = ({
               value={intervaloValue}
               onChange={handleIntervaloChange}
               onBlur={() => intervaloValue !== '' && validateIntervalo(intervaloValue)}
-              bg="gray.100"
+              bg="bg.input"
               borderWidth={intervaloError ? '2px' : '0'}
               borderColor={intervaloError ? 'red.500' : 'transparent'}
-              _hover={{ bg: 'gray.200' }}
-              _focus={{ 
-                bg: 'white', 
+              _hover={{ bg: 'bg.muted' }}
+              _focus={{
+                bg: 'bg.default',
                 borderColor: intervaloError ? 'red.500' : 'brand.orange', 
                 borderWidth: '2px' 
               }}
@@ -210,7 +210,7 @@ const UmbralesConfig = ({
                 {intervaloError}
               </Text>
             )}
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="fg.muted">
               Frecuencia con la que los sensores toman mediciones
             </Text>
           </Stack>

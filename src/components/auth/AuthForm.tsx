@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaFire, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Box, Container, VStack, Text, Input, Button, Link, Stack, IconButton } from '@chakra-ui/react';
+import { ColorModeButton } from '../ui/color-mode';
 
 const MotionBox = motion.create(Box);
 
@@ -88,11 +89,12 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
   return (
     <Box
       minH="100vh"
-      bg="brand.beige"
+      bg="bg.page"
       display="flex"
       alignItems="center"
       justifyContent="center"
     >
+
       <Container maxW="md">
         <MotionBox
           initial={{ opacity: 0, y: 20 }}
@@ -100,13 +102,17 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
           transition={{ duration: 0.6 }}
         >
           <Box
-            bg="white"
+            bg="bg.default"
             p={{ base: 6, md: 10 }}
             borderRadius="xl"
             boxShadow="xl"
             borderWidth="1px"
-            borderColor="gray.200"
+            borderColor="border.default"
+            position="relative"
           >
+            <Box position="absolute" top={3} right={3}>
+              <ColorModeButton />
+            </Box>
             <VStack gap={6}>
               <MotionBox
                 whileHover={{ rotate: 360, scale: 1.1 }}
@@ -128,7 +134,7 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                 <Text fontSize="xl" fontWeight="700" textAlign="center">
                   Sistema de detección de Incendios
                 </Text>
-                <Text fontSize="sm" color="gray.500" textAlign="center">
+                <Text fontSize="sm" color="fg.muted" textAlign="center">
                   {isLogin
                     ? 'Ingrese sus credenciales para acceder al panel de control'
                     : 'Cree una cuenta para acceder al panel de control'}
@@ -155,12 +161,12 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                       }}
                       onBlur={() => validateName(name)}
                       onKeyDown={handleKeyPress}
-                      bg="gray.100"
+                      bg="bg.input"
                       borderWidth={nameError ? '2px' : '0'}
                       borderColor={nameError ? 'red.500' : 'transparent'}
-                      _hover={{ bg: 'gray.200' }}
+                      _hover={{ bg: 'bg.muted' }}
                       _focus={{
-                        bg: 'white',
+                        bg: 'bg.default',
                         borderColor: nameError ? 'red.500' : 'brand.orange',
                         borderWidth: '2px',
                       }}
@@ -185,12 +191,12 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                     }}
                     onBlur={() => validateEmail(email)}
                     onKeyDown={handleKeyPress}
-                    bg="gray.100"
+                    bg="bg.input"
                     borderWidth={emailError ? '2px' : '0'}
                     borderColor={emailError ? 'red.500' : 'transparent'}
-                    _hover={{ bg: 'gray.200' }}
+                    _hover={{ bg: 'bg.muted' }}
                     _focus={{
-                      bg: 'white',
+                      bg: 'bg.default',
                       borderColor: emailError ? 'red.500' : 'brand.orange',
                       borderWidth: '2px',
                     }}
@@ -215,12 +221,12 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                       }}
                       onBlur={() => validatePassword(password)}
                       onKeyDown={handleKeyPress}
-                      bg="gray.100"
+                      bg="bg.input"
                       borderWidth={passwordError ? '2px' : '0'}
                       borderColor={passwordError ? 'red.500' : 'transparent'}
-                      _hover={{ bg: 'gray.200' }}
+                      _hover={{ bg: 'bg.muted' }}
                       _focus={{
-                        bg: 'white',
+                        bg: 'bg.default',
                         borderColor: passwordError ? 'red.500' : 'brand.orange',
                         borderWidth: '2px',
                       }}
@@ -271,7 +277,7 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                   {isLogin && (
                     <Link
                       fontSize="sm"
-                      color="gray.500"
+                      color="fg.muted"
                       _hover={{ color: 'brand.orange' }}
                     >
                       ¿Olvidó su contraseña?

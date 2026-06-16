@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ChakraProvider } from '@chakra-ui/react';
-import { system } from './theme/themes';
+import { Provider } from './components/ui/provider';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashBoard';
@@ -31,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <ChakraProvider value={system}>
+    <Provider>
       <BrowserRouter>
         <SensorDataProvider>
           <GlobalFireAlert />
@@ -67,7 +66,7 @@ function App() {
           </Routes>
         </SensorDataProvider>
       </BrowserRouter>
-    </ChakraProvider>
+    </Provider>
   );
 }
 

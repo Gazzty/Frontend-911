@@ -192,7 +192,7 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
         overflow="hidden"
         boxShadow="0 4px 24px rgba(0,0,0,0.08)"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
         h={{ base: '320px', md: '450px', lg: '600px' }}
       >
         <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
@@ -203,17 +203,17 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
           bottom="24px"
           right="8px"
           zIndex={1000}
-          bg="white"
+          bg="bg.default"
           borderRadius="xl"
           overflow="hidden"
           boxShadow="0 4px 20px rgba(0,0,0,0.12)"
           borderWidth="1px"
-          borderColor="gray.100"
+          borderColor="border.default"
           pointerEvents="none"
           minW="170px"
         >
-          <Box px={3} py={2} bg="gray.50" borderBottomWidth="1px" borderColor="gray.100">
-            <Text fontSize="10px" fontWeight="700" color="gray.400" letterSpacing="wider" textTransform="uppercase">
+          <Box px={3} py={2} bg="bg.subtle" borderBottomWidth="1px" borderColor="border.default">
+            <Text fontSize="10px" fontWeight="700" color="fg.muted" letterSpacing="wider" textTransform="uppercase">
               Leyenda
             </Text>
           </Box>
@@ -226,7 +226,7 @@ const MapView = forwardRef<MapViewRef, MapViewProps>(({ celdas }, ref) => {
                   boxShadow={`0 0 0 2px ${color}33`}
                   flexShrink={0}
                 />
-                <Text fontSize="12px" color="gray.600" fontWeight="500">{label}</Text>
+                <Text fontSize="12px" color="fg.muted" fontWeight="500">{label}</Text>
               </HStack>
             ))}
           </VStack>

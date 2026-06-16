@@ -34,12 +34,12 @@ const AlertasRecientes = ({ refreshKey = 0 }: AlertasRecientesProps) => {
       transition={{ duration: 0.5, delay: 0.6 }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={6}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
       >
         <Text fontSize="lg" fontWeight="600" mb={4}>
           Alertas recientes

@@ -156,12 +156,12 @@ const TemperatureChart = ({ data, celdas, timeRange, onTimeRangeChange, isLoadin
       h={{ base: '320px', md: '380px', lg: '450px' }}
     >
       <Box
-        bg="white"
+        bg="bg.default"
         p={{ base: 4, md: 6 }}
         borderRadius="lg"
         boxShadow="sm"
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor="border.default"
         h="100%"
         display="flex"
         flexDirection="column"
@@ -178,8 +178,8 @@ const TemperatureChart = ({ data, celdas, timeRange, onTimeRangeChange, isLoadin
                 variant={timeRange === btn.value ? 'solid' : 'ghost'}
                 onClick={() => onTimeRangeChange(btn.value)}
                 bg={timeRange === btn.value ? 'brand.orange' : 'transparent'}
-                color={timeRange === btn.value ? 'white' : 'gray.500'}
-                _hover={{ bg: timeRange === btn.value ? '#E63E00' : 'gray.100' }}
+                color={timeRange === btn.value ? 'white' : 'fg.muted'}
+                _hover={{ bg: timeRange === btn.value ? '#E63E00' : 'bg.muted' }}
                 borderRadius="md"
               >
                 {btn.label}
@@ -197,7 +197,7 @@ const TemperatureChart = ({ data, celdas, timeRange, onTimeRangeChange, isLoadin
               display="flex"
               alignItems="center"
               justifyContent="center"
-              bg="whiteAlpha.700"
+              bg="blackAlpha.300"
               borderRadius="md"
             >
               <Spinner size="xl" color="brand.orange" borderWidth="3px" />
@@ -211,7 +211,7 @@ const TemperatureChart = ({ data, celdas, timeRange, onTimeRangeChange, isLoadin
               alignItems="center"
               justifyContent="center"
             >
-              <Text color="gray.400" fontSize="sm">No hay datos de temperatura disponibles</Text>
+              <Text color="fg.muted" fontSize="sm">No hay datos de temperatura disponibles</Text>
             </Box>
           )}
           <ResponsiveContainer width="100%" height="100%">
