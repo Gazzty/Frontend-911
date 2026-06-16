@@ -68,6 +68,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const celdasRef = useRef<Celda[]>([]);
   const bufferRef = useRef<Medicion[]>([]);
   const umbralRef = useRef(DEFAULT_UMBRAL);
+  const lastMedicionAtRef = useRef<Record<number, number>>({});
 
   // Cargar celdas y umbral desde la API REST al montar
   useEffect(() => {
@@ -143,6 +144,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (celdaModificada) {
+        lastMedicionAtRef.current[celda.id] = Date.now();
         const tieneIdReal = celda.sensores.some((s) => s.id !== 0);
         const medicionesDelaCelda = tieneIdReal
           ? nuevasMediciones.filter((m) => celda.sensores.some((s) => s.id === m.sensorId))
@@ -183,6 +185,32 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     setLastUpdate(new Date());
     actualizarCeldas(buffer);
   }, [actualizarCeldas]);
+
+  // Marcar celdas como inactivas si no reciben datos en 3 ciclos de polling
+  useEffect(() => {
+    const TIMEOUT_MS = intervaloMedicion * 3 * 1000;
+
+    const interval = setInterval(() => {
+      const ahora = Date.now();
+      setCeldas((prev) => {
+        let cambio = false;
+        const actualizadas = prev.map((celda) => {
+          const ultima = lastMedicionAtRef.current[celda.id];
+          if (!ultima) return celda;
+          const debeEstarInactiva = ahora - ultima > TIMEOUT_MS;
+          if (debeEstarInactiva === celda.activa) {
+            cambio = true;
+            return { ...celda, activa: !debeEstarInactiva };
+          }
+          return celda;
+        });
+        if (cambio) celdasRef.current = actualizadas;
+        return cambio ? actualizadas : prev;
+      });
+    }, intervaloMedicion * 1000);
+
+    return () => clearInterval(interval);
+  }, [intervaloMedicion]);
 
   // Escuchar mensajes del WebSocket y procesar inmediatamente
   useEffect(() => {
