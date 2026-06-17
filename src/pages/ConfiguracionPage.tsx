@@ -79,7 +79,6 @@ const ConfiguracionPage = () => {
   const handleSaveNotificaciones = async (notifConfig: {
     email: boolean;
     emailDireccion: string;
-    whatsapp: boolean;
     sms: boolean;
     telefono: string;
   }) => {
@@ -250,7 +249,6 @@ const ConfiguracionPage = () => {
                 <NotificacionesConfig
                   email={config.notificaciones.email}
                   emailDireccion={config.notificaciones.emailDireccion}
-                  whatsapp={config.notificaciones.whatsapp}
                   sms={config.notificaciones.sms}
                   telefono={config.notificaciones.telefono}
                   onSave={handleSaveNotificaciones}

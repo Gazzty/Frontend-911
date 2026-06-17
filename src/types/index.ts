@@ -60,7 +60,6 @@ export interface Config {
   notificaciones: {
     email: boolean;
     emailDireccion: string;
-    whatsapp: boolean;
     sms: boolean;
     telefono: string;
   };

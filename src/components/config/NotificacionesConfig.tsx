@@ -13,13 +13,11 @@ const toaster = createToaster({
 interface NotificacionesConfigProps {
   email: boolean;
   emailDireccion: string;
-  whatsapp: boolean;
   sms: boolean;
   telefono: string;
   onSave: (config: {
     email: boolean;
     emailDireccion: string;
-    whatsapp: boolean;
     sms: boolean;
     telefono: string;
   }) => void;
@@ -28,14 +26,12 @@ interface NotificacionesConfigProps {
 const NotificacionesConfig = ({
   email: initialEmail,
   emailDireccion: initialEmailDir,
-  whatsapp: initialWhatsapp,
   sms: initialSms,
   telefono: initialTelefono,
   onSave,
 }: NotificacionesConfigProps) => {
   const [email, setEmail] = useState(initialEmail);
   const [emailDireccion, setEmailDireccion] = useState(initialEmailDir);
-  const [whatsapp, setWhatsapp] = useState(initialWhatsapp);
   const [sms, setSms] = useState(initialSms);
   const [telefono, setTelefono] = useState(initialTelefono);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,16 +82,15 @@ const NotificacionesConfig = ({
 
     setIsLoading(true);
     try {
-      await onSave({ email, emailDireccion, whatsapp, sms, telefono });
+      await onSave({ email, emailDireccion, sms, telefono });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const hasChanges = 
+  const hasChanges =
     email !== initialEmail ||
     emailDireccion !== initialEmailDir ||
-    whatsapp !== initialWhatsapp ||
     sms !== initialSms ||
     telefono !== initialTelefono;
 
@@ -174,37 +169,6 @@ const NotificacionesConfig = ({
                 </Text>
               )}
             </Stack>
-          </Box>
-
-          <Box>
-            <HStack justify="space-between">
-              <Box>
-                <Text fontSize="sm" fontWeight="600">
-                  Notificaciones por Whatsapp
-                </Text>
-                <Text fontSize="xs" color="fg.muted" mt={1}>
-                  Requiere integración con WhatsApp Business API
-                </Text>
-              </Box>
-              <Box
-                as="label"
-                display="flex"
-                alignItems="center"
-                cursor="pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.checked)}
-                  style={{
-                    width: '44px',
-                    height: '24px',
-                    cursor: 'pointer',
-                    accentColor: '#FF4500',
-                  }}
-                />
-              </Box>
-            </HStack>
           </Box>
 
           <Box>

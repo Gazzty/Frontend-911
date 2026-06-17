@@ -123,18 +123,6 @@ async function runTest() {
       );
     }
 
-    const whatsapp = await getSetting(
-      "WhatsappNotification"
-    );
-
-    console.log("WhatsApp:", whatsapp);
-
-    if (whatsapp.value !== "true") {
-      throw new Error(
-        "WhatsApp notifications update failed"
-      );
-    }
-
     const sms = await getSetting(
       "SMSNotification"
     );

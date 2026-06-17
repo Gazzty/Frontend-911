@@ -164,43 +164,6 @@ export default function Settings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="whatsapp-notifications">Notificaciones por WhatsApp</Label>
-                  <p className="text-sm text-gray-500">Recibir alertas por WhatsApp</p>
-                </div>
-                <Switch
-                  id="whatsapp-notifications"
-                  checked={localConfig.notifications.whatsapp}
-                  onCheckedChange={(checked) =>
-                    setLocalConfig({
-                      ...localConfig,
-                      notifications: { ...localConfig.notifications, whatsapp: checked },
-                    })
-                  }
-                />
-              </div>
-
-              {localConfig.notifications.whatsapp && (
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp-number">Número de WhatsApp</Label>
-                  <Input
-                    id="whatsapp-number"
-                    type="tel"
-                    value={localConfig.notifications.whatsappNumber}
-                    onChange={(e) =>
-                      setLocalConfig({
-                        ...localConfig,
-                        notifications: {
-                          ...localConfig.notifications,
-                          whatsappNumber: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
                   <Label htmlFor="sms-notifications">Notificaciones por SMS</Label>
                   <p className="text-sm text-gray-500">Recibir alertas por mensaje de texto</p>
                 </div>

@@ -8,7 +8,6 @@ const SETTING_CODES = {
   INTERVALO_MEDICION: 'IntervalPollingDefault',
   NOTIF_EMAIL: 'EmailsNotification',
   NOTIF_EMAIL_DIRECCION: 'Emails',
-  NOTIF_WHATSAPP: 'WhatsappNotification',
   NOTIF_SMS: 'SMSNotification',
   NOTIF_TELEFONO: 'PhoneNumber',
 } as const;
@@ -21,7 +20,6 @@ const DEFAULT_CONFIG: Config = {
   notificaciones: {
     email: false,
     emailDireccion: '',
-    whatsapp: false,
     sms: false,
     telefono: '',
   },
@@ -321,7 +319,6 @@ export const dataService = {
       notificaciones: {
         email: map.get(SETTING_CODES.NOTIF_EMAIL) === 'true',
         emailDireccion: map.get(SETTING_CODES.NOTIF_EMAIL_DIRECCION) ?? DEFAULT_CONFIG.notificaciones.emailDireccion,
-        whatsapp: map.get(SETTING_CODES.NOTIF_WHATSAPP) === 'true',
         sms: map.get(SETTING_CODES.NOTIF_SMS) === 'true',
         telefono: map.get(SETTING_CODES.NOTIF_TELEFONO) ?? DEFAULT_CONFIG.notificaciones.telefono,
       },
@@ -334,7 +331,6 @@ export const dataService = {
       updateSetting({ code: SETTING_CODES.INTERVALO_MEDICION, summary: 'Intervalo de medición de sensores (segundos)', value: String(config.umbrales.intervaloMedicion) }),
       updateSetting({ code: SETTING_CODES.NOTIF_EMAIL, summary: 'Notificaciones por email activadas', value: String(config.notificaciones.email) }),
       updateSetting({ code: SETTING_CODES.NOTIF_EMAIL_DIRECCION, summary: 'Dirección de email para notificaciones', value: config.notificaciones.emailDireccion }),
-      updateSetting({ code: SETTING_CODES.NOTIF_WHATSAPP, summary: 'Notificaciones por WhatsApp activadas', value: String(config.notificaciones.whatsapp) }),
       updateSetting({ code: SETTING_CODES.NOTIF_SMS, summary: 'Notificaciones por SMS activadas', value: String(config.notificaciones.sms) }),
       updateSetting({ code: SETTING_CODES.NOTIF_TELEFONO, summary: 'Número de teléfono para notificaciones', value: config.notificaciones.telefono }),
     ]);

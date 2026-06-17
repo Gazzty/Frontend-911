@@ -31,8 +31,6 @@ export interface Alert {
 export interface NotificationConfig {
   email: boolean;
   emailAddress: string;
-  whatsapp: boolean;
-  whatsappNumber: string;
   sms: boolean;
   smsNumber: string;
 }

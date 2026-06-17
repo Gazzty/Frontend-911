@@ -108,8 +108,6 @@ export const defaultConfig: SystemConfig = {
   notifications: {
     email: true,
     emailAddress: 'alertas@sistema-incendios.com',
-    whatsapp: false,
-    whatsappNumber: '',
     sms: false,
     smsNumber: '',
   },

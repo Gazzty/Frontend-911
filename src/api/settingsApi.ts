@@ -172,28 +172,6 @@ export const updateEmailNotifications = async (
   });
 };
 
-// ================= WHATSAPP =================
-
-// export const createWhatsappNotifications = async (
-//   value: string
-// ): Promise<void> => {
-//   await addSetting({
-//     code: "WhatsappNotification",
-//     summary: "Notificaciones por WhatsApp activadas",
-//     value,
-//   });
-// };
-
-export const updateWhatsappNotifications = async (
-  value: string
-): Promise<void> => {
-  await updateSetting({
-    code: "WhatsappNotification",
-    summary: "Notificaciones por WhatsApp activadas",
-    value,
-  });
-};
-
 // ================= SMS =================
 
 // export const createSMSNotifications = async (
