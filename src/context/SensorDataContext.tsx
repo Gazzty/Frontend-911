@@ -185,15 +185,14 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   }, [actualizarCeldas]);
 
   // Actualizar el estado activa/inactiva de una celda a partir de la info de conexión del WebSocket
-  const actualizarActivaPorConexion = useCallback((info: SensorConnectionInfo) => {
-    if (info.sensorId == null) return;
+  const actualizarActivaPorConexion = useCallback((sensorId: number, isConnected: boolean) => {
     setCeldas((prev) => {
       let cambio = false;
       const actualizadas = prev.map((celda) => {
-        const tieneSensor = celda.sensores.some((s) => s.id === info.sensorId);
-        if (tieneSensor && celda.activa !== info.isConnected) {
+        const tieneSensor = celda.sensores.some((s) => s.id === sensorId);
+        if (tieneSensor && celda.activa !== isConnected) {
           cambio = true;
-          return { ...celda, activa: info.isConnected };
+          return { ...celda, activa: isConnected };
         }
         return celda;
       });
@@ -222,21 +221,28 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const unsubConnectionInfo = websocketService.onSensorConnectionInfo((info) => {
-      actualizarActivaPorConexion(info);
+      if (info.sensorId == null) return;
 
-      const sensorLabel = info.sensorId != null ? `Sensor ${info.sensorId}` : 'Sensor';
-      const cellLabel = info.cellDescription ? ` — ${info.cellDescription}` : '';
-      if (info.isConnected) {
+      const statusText = info.status ?? '';
+      // "desconectado" contiene "conectado" como substring, por eso se verifica primero.
+      const isConnected = statusText.toLowerCase().includes('desconectado')
+        ? false
+        : statusText.toLowerCase().includes('conectado');
+
+      actualizarActivaPorConexion(info.sensorId, isConnected);
+
+      const sensorLabel = `Sensor ${info.sensorId}`;
+      if (isConnected) {
         toaster.create({
           title: `${sensorLabel} conectado`,
-          description: `${sensorLabel}${cellLabel} se conectó correctamente.`,
+          description: statusText || `${sensorLabel} se conectó correctamente.`,
           type: 'success',
           duration: 4000,
         });
       } else {
         toaster.create({
           title: `${sensorLabel} desconectado`,
-          description: `${sensorLabel}${cellLabel} se desconectó o reportó una medición errónea.`,
+          description: statusText || `${sensorLabel} se desconectó o reportó una medición errónea.`,
           type: 'error',
           duration: 5000,
         });

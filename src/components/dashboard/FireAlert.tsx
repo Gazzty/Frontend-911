@@ -18,10 +18,14 @@ const FIRE_THEME = {
   border: 'red.500',
   iconBg: 'red.500',
   titleColor: 'red.700',
+  darkTitleColor: 'red.300',
   title: '¡ALERTA DE INCENDIO!',
   cardBg: 'red.50',
   cardBorder: 'red.200',
   cardText: 'red.700',
+  darkCardBg: 'rgba(220, 38, 38, 0.12)',
+  darkCardBorder: 'red.800',
+  darkCardText: 'red.300',
   markerColor: '#E53E3E',
   palette: 'red',
   footer: 'Contacte a los servicios de emergencia inmediatamente.',
@@ -33,10 +37,14 @@ const WARNING_THEME = {
   border: 'orange.400',
   iconBg: 'orange.500',
   titleColor: 'orange.700',
+  darkTitleColor: 'orange.300',
   title: 'ALERTA DE POSIBILIDAD DE INCENDIO',
   cardBg: 'orange.50',
   cardBorder: 'orange.200',
   cardText: 'orange.700',
+  darkCardBg: 'rgba(234, 88, 12, 0.12)',
+  darkCardBorder: 'orange.800',
+  darkCardText: 'orange.300',
   markerColor: '#DD6B20',
   palette: 'orange',
   footer: 'Monitoree la situación y prepare los protocolos de emergencia.',
@@ -77,6 +85,7 @@ const AlertSection = ({
       fontSize={{ base: compact ? 'xl' : '2xl', md: compact ? '2xl' : '3xl' }}
       fontWeight="800"
       color={theme.titleColor}
+      _dark={{ color: theme.darkTitleColor }}
       lineHeight="1.2"
     >
       {theme.title}
@@ -101,9 +110,10 @@ const AlertSection = ({
           w="full"
           justify="center"
           gap={2}
+          _dark={{ bg: theme.darkCardBg, borderColor: theme.darkCardBorder }}
         >
           <FaMapMarkerAlt color={theme.markerColor} size={compact ? 14 : 16} />
-          <Text fontSize={compact ? 'md' : 'lg'} fontWeight="700" color={theme.cardText}>
+          <Text fontSize={compact ? 'md' : 'lg'} fontWeight="700" color={theme.cardText} _dark={{ color: theme.darkCardText }}>
             {celda.nombre}
           </Text>
         </HStack>
