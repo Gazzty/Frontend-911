@@ -15,7 +15,7 @@ const mockCeldas: Celda[] = [
     nombre: 'Celda Oeste',
     timestamp: '09:15:00',
     activa: true,
-    sensores: [{ id: 1, temperatura: 28, enFuego: false, tipo: 'temperatura' }],
+    sensores: [{ id: 1, temperatura: 28, enFuego: false, tipo: 'temperatura', conectado: true }],
     ubicacion: { lat: -34.6, lng: -58.4 },
   },
   {
@@ -23,7 +23,7 @@ const mockCeldas: Celda[] = [
     nombre: 'Celda Este',
     timestamp: '09:16:00',
     activa: true,
-    sensores: [{ id: 2, temperatura: 85, enFuego: true, tipo: 'temperatura' }],
+    sensores: [{ id: 2, temperatura: 85, enFuego: true, tipo: 'temperatura', conectado: true }],
     ubicacion: { lat: -34.7, lng: -58.5 },
   },
 ]

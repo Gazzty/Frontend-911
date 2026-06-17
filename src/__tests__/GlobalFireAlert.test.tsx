@@ -21,7 +21,7 @@ const makeCelda = (id: number, enFuego = false, temperatura = 25): Celda => ({
   timestamp: '10:00:00',
   activa: true,
   sensores: [
-    { id, temperatura, enFuego, tipo: enFuego ? 'fuego' : 'temperatura' },
+    { id, temperatura, enFuego, tipo: enFuego ? 'fuego' : 'temperatura', conectado: true },
   ],
   ubicacion: { lat: -34.6, lng: -58.4 },
 })

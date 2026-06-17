@@ -37,6 +37,7 @@ const cellToCelda = (cell: Cell): Celda => ({
       temperatura: 0,
       enFuego: false,
       tipo: s.type?.id === 2 ? 'fuego' : 'temperatura',
+      conectado: true,
     })),
   ubicacion: {
     lat: parseFloat(cell.latitude),

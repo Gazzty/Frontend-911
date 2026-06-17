@@ -49,6 +49,7 @@ function cellToCelda(cell: Cell): Celda {
         temperatura: 0,
         enFuego: false,
         tipo: s.type?.id === 2 ? 'fuego' : 'temperatura',
+        conectado: true,
       })),
     ubicacion: {
       lat: parseFloat(cell.latitude),
@@ -192,17 +193,23 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     actualizarCeldas(buffer);
   }, [actualizarCeldas]);
 
-  // Actualizar el estado activa/inactiva de una celda a partir de la info de conexión del WebSocket
+  // Actualizar el estado conectado/desconectado de un sensor a partir de la info de conexión
+  // del WebSocket. Una celda solo se marca inactiva cuando TODOS sus sensores están desconectados.
   const actualizarActivaPorConexion = useCallback((sensorId: number, isConnected: boolean) => {
     setCeldas((prev) => {
       let cambio = false;
       const actualizadas = prev.map((celda) => {
-        const tieneSensor = celda.sensores.some((s) => s.id === sensorId);
-        if (tieneSensor && celda.activa !== isConnected) {
-          cambio = true;
-          return { ...celda, activa: isConnected };
+        const sensorIndex = celda.sensores.findIndex((s) => s.id === sensorId);
+        if (sensorIndex === -1 || celda.sensores[sensorIndex].conectado === isConnected) {
+          return celda;
         }
-        return celda;
+
+        cambio = true;
+        const sensoresActualizados = celda.sensores.map((s, i) =>
+          i === sensorIndex ? { ...s, conectado: isConnected } : s
+        );
+        const activa = sensoresActualizados.some((s) => s.conectado);
+        return { ...celda, sensores: sensoresActualizados, activa };
       });
       if (cambio) celdasRef.current = actualizadas;
       return cambio ? actualizadas : prev;
@@ -239,7 +246,15 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
 
       actualizarActivaPorConexion(info.sensorId, isConnected);
 
-      const sensorLabel = `Sensor ${info.sensorId}`;
+      const tipoSensor = celdasRef.current
+        .flatMap((c) => c.sensores)
+        .find((s) => s.id === info.sensorId)?.tipo;
+      const sensorLabel =
+        tipoSensor === 'fuego'
+          ? 'Sensor de fuego'
+          : tipoSensor === 'temperatura'
+            ? 'Sensor de temperatura'
+            : `Sensor ${info.sensorId}`;
       if (isConnected) {
         toaster.create({
           title: `${sensorLabel} conectado`,

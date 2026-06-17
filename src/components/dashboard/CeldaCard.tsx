@@ -1,5 +1,6 @@
-import { Box, Text, VStack, HStack, Badge } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Badge, Tooltip, Portal } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import type { Celda } from '../../types';
 
 const MotionBox = motion.create(Box);
@@ -10,9 +11,15 @@ interface CeldaCardProps {
   onClick?: (celda: Celda) => void;
 }
 
+const formatSensoresDesconectados = (ids: number[]): string =>
+  ids.length === 1
+    ? `Sensor ${ids[0]} desconectado`
+    : `Sensores ${ids.join(', ')} desconectados`;
+
 const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
   const tempSensor = celda.sensores.find((s) => s.tipo === 'temperatura');
   const enAlerta = celda.sensores.some((s) => s.enFuego);
+  const sensoresDesconectados = celda.sensores.filter((s) => !s.conectado);
 
   return (
     <MotionBox
@@ -56,6 +63,28 @@ const CeldaCard = ({ celda, index, onClick }: CeldaCardProps) => {
               <Text fontWeight="bold" fontSize="sm" color={celda.activa ? undefined : 'gray.400'}>
                 {celda.activa ? `${tempSensor.temperatura}°C` : '--'}
               </Text>
+            )}
+            {sensoresDesconectados.length > 0 && (
+              <Tooltip.Root openDelay={100} closeDelay={100}>
+                <Tooltip.Trigger asChild>
+                  <Box
+                    as="span"
+                    display="inline-flex"
+                    alignItems="center"
+                    color="orange.500"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <FaExclamationTriangle size={14} />
+                  </Box>
+                </Tooltip.Trigger>
+                <Portal>
+                  <Tooltip.Positioner>
+                    <Tooltip.Content>
+                      {formatSensoresDesconectados(sensoresDesconectados.map((s) => s.id))}
+                    </Tooltip.Content>
+                  </Tooltip.Positioner>
+                </Portal>
+              </Tooltip.Root>
             )}
             {enAlerta ? (
               <Badge colorPalette="red" bg="red.500" color="white" px={2} py={0.5} borderRadius="md" fontSize="xs">
