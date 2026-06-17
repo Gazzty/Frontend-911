@@ -132,7 +132,7 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
 
               <VStack gap={1}>
                 <Text fontSize="xl" fontWeight="700" textAlign="center">
-                  Sistema de detección de Incendios
+                  FiredApp
                 </Text>
                 <Text fontSize="sm" color="fg.muted" textAlign="center">
                   {isLogin
@@ -274,16 +274,6 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                 </MotionBox>
 
                 <Stack gap={2} align="center" mt={2} w="full">
-                  {isLogin && (
-                    <Link
-                      fontSize="sm"
-                      color="fg.muted"
-                      _hover={{ color: 'brand.orange' }}
-                    >
-                      ¿Olvidó su contraseña?
-                    </Link>
-                  )}
-                  
                   <Link
                     fontSize="sm"
                     color="brand.orange"

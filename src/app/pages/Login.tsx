@@ -35,7 +35,7 @@ export default function Login() {
               <Flame className="h-8 w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Sistema de Detección de Incendios</CardTitle>
+          <CardTitle className="text-2xl">FiredApp</CardTitle>
           <CardDescription>
             Ingrese sus credenciales para acceder al panel de control
           </CardDescription>

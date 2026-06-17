@@ -196,7 +196,7 @@ const DashboardPage = () => {
                 Dashboard
               </Text>
               <Text fontSize="sm" color="fg.muted">
-                Monitoreo en tiempo real del sistema de detección de incendios
+                Monitoreo en tiempo real de FiredApp
               </Text>
               <HStack gap={2} mt={1} flexWrap="wrap">
                 {lastUpdate && (

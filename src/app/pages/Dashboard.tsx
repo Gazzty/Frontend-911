@@ -31,7 +31,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Monitoreo en tiempo real del sistema de detección de incendios</p>
+        <p className="text-gray-600 mt-1">Monitoreo en tiempo real de FiredApp</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
