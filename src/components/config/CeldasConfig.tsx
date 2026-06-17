@@ -350,7 +350,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
               )}
               <MotionBox whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
-                  size="sm" bg="brand.black" color="white" px={4}
+                  size="sm" bg="fg.default" color="bg.default" px={4}
                   onClick={handleOpenCreateModal} _hover={{ bg: 'gray.700' }}
                 >
                   <FaPlus />
@@ -532,7 +532,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       </select>
                     </Box>
                     <Button
-                      size="sm" bg="brand.black" color="white"
+                      size="sm" bg="fg.default" color="bg.default"
                       onClick={addSensor}
                       disabled={availableSensors.length === 0 || isCreating}
                       _hover={{ bg: 'gray.700' }}
@@ -593,7 +593,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                 </Button>
                 <MotionBox flex={1} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button
-                    w="full" bg="brand.black" color="white"
+                    w="full" bg="fg.default" color="bg.default"
                     onClick={handleCreate} loading={isCreating} disabled={isCreating}
                     _hover={{ bg: 'gray.700' }}
                   >
@@ -725,7 +725,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                       </select>
                     </Box>
                     <Button
-                      size="sm" bg="brand.black" color="white"
+                      size="sm" bg="fg.default" color="bg.default"
                       onClick={addSensorToEdit}
                       disabled={editAvailableSensors.length === 0 || isEditing}
                       _hover={{ bg: 'gray.700' }}
@@ -775,7 +775,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                 </Button>
                 <MotionBox flex={1} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button
-                    w="full" bg="brand.black" color="white"
+                    w="full" bg="fg.default" color="bg.default"
                     onClick={handleEdit} loading={isEditing} disabled={isEditing}
                     _hover={{ bg: 'gray.700' }}
                   >

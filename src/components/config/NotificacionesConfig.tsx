@@ -218,7 +218,7 @@ const NotificacionesConfig = ({
                   placeholder="ejemplo@correo.com"
                 />
                 <Button
-                  size="sm" bg="brand.black" color="white"
+                  size="sm" bg="fg.default" color="bg.default"
                   onClick={addEmail}
                   disabled={!email || !emailInput.trim()}
                   _hover={{ bg: 'gray.700' }}
@@ -312,7 +312,7 @@ const NotificacionesConfig = ({
                   placeholder="+54 9 11 1234-5678"
                 />
                 <Button
-                  size="sm" bg="brand.black" color="white"
+                  size="sm" bg="fg.default" color="bg.default"
                   onClick={addTelefono}
                   disabled={!sms || !telefonoInput.trim()}
                   _hover={{ bg: 'gray.700' }}
@@ -352,8 +352,8 @@ const NotificacionesConfig = ({
           <MotionBox whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               w="full"
-              bg="brand.black"
-              color="white"
+              bg="fg.default"
+              color="bg.default"
               onClick={handleSave}
               loading={isLoading}
               disabled={!hasChanges || isLoading}
