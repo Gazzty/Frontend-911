@@ -34,7 +34,7 @@ const NavItem = ({ to, icon: Icon, label, isActive }: NavItemProps) => (
         transition="all 0.3s ease"
       >
         <Icon size={16} />
-        <Text fontSize="sm">{label}</Text>
+        <Text fontSize="sm" color="inherit">{label}</Text>
       </Flex>
     </MotionBox>
   </Link>
@@ -47,16 +47,16 @@ const MobileNavItem = ({ to, icon: Icon, label, isActive, onClick }: NavItemProp
       gap={3}
       px={4}
       py={3}
-      bg={isActive ? 'orange.50' : 'transparent'}
+      bg={isActive ? 'rgba(255,69,0,0.1)' : 'transparent'}
       borderLeft={isActive ? '3px solid' : '3px solid transparent'}
       borderColor={isActive ? 'brand.orange' : 'transparent'}
-      color={isActive ? 'brand.black' : 'gray.600'}
+      color={isActive ? 'fg.default' : 'fg.muted'}
       fontWeight={isActive ? '600' : '400'}
-      _hover={{ bg: 'gray.50', color: 'brand.black' }}
+      _hover={{ bg: 'bg.muted', color: 'fg.default' }}
       transition="all 0.2s ease"
     >
       <Icon size={18} />
-      <Text fontSize="sm">{label}</Text>
+      <Text fontSize="sm" color="inherit">{label}</Text>
     </Flex>
   </Link>
 );
@@ -119,7 +119,7 @@ const Navbar = () => {
               display={{ base: 'block', md: 'none' }}
               fontSize="sm"
               fontWeight="600"
-              color="brand.black"
+              color="fg.default"
             >
               {navItems.find((item) => item.to === location.pathname)?.label ?? ''}
             </Text>

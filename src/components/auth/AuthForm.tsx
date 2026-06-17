@@ -260,8 +260,8 @@ const AuthForm = ({ type, onSubmit, isLoading, error, onNavigate }: AuthFormProp
                 >
                   <Button
                     w="full"
-                    bg="brand.black"
-                    color="white"
+                    bg="fg.default"
+                    color="bg.default"
                     size="lg"
                     onClick={handleSubmit}
                     loading={isLoading}

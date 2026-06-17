@@ -218,8 +218,8 @@ const UmbralesConfig = ({
           <MotionBox whileHover={{ scale: hasChanges && !tempError && !intervaloError ? 1.02 : 1 }} whileTap={{ scale: hasChanges && !tempError && !intervaloError ? 0.98 : 1 }}>
             <Button
               w="full"
-              bg={hasChanges && !tempError && !intervaloError ? 'brand.black' : 'gray.400'}
-              color="white"
+              bg={hasChanges && !tempError && !intervaloError ? 'fg.default' : 'gray.400'}
+              color="bg.default"
               onClick={handleSave}
               loading={isLoading}
               disabled={!hasChanges || tempError !== '' || intervaloError !== '' || isLoading}
