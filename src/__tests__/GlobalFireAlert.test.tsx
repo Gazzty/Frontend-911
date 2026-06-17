@@ -37,6 +37,7 @@ const DEFAULT_CONTEXT: SensorDataContextType = {
   cargandoCeldas: false,
   refreshCeldas: vi.fn(),
   umbralTemperatura: 50,
+  setUmbralTemperatura: vi.fn(),
 } as unknown as SensorDataContextType
 
 function mockSensorData(overrides: Partial<SensorDataContextType> = {}) {

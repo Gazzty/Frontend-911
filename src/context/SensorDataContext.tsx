@@ -27,6 +27,8 @@ interface SensorDataContextType {
   refreshCeldas: () => Promise<void>;
   /** Umbral de temperatura para alerta (°C), leído de la configuración del backend */
   umbralTemperatura: number;
+  /** Actualizar el umbral de temperatura (tras guardar la configuración) */
+  setUmbralTemperatura: (umbral: number) => void;
 }
 
 const SensorDataContext = createContext<SensorDataContextType | null>(null);
@@ -63,11 +65,18 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [intervaloMedicion, setIntervaloMedicion] = useState(DEFAULT_INTERVALO);
   const [cargandoCeldas, setCargandoCeldas] = useState(true);
-  const [umbralTemperatura, setUmbralTemperatura] = useState(DEFAULT_UMBRAL);
+  const [umbralTemperatura, setUmbralTemperaturaState] = useState(DEFAULT_UMBRAL);
 
   const celdasRef = useRef<Celda[]>([]);
   const bufferRef = useRef<Medicion[]>([]);
   const umbralRef = useRef(DEFAULT_UMBRAL);
+
+  // umbralRef se usa dentro de actualizarCeldas (closure estable), por eso
+  // se mantiene en sync manualmente en lugar de derivarlo solo del state.
+  const setUmbralTemperatura = useCallback((valor: number) => {
+    umbralRef.current = valor;
+    setUmbralTemperaturaState(valor);
+  }, []);
 
   // Cargar celdas y umbral desde la API REST al montar
   useEffect(() => {
@@ -76,7 +85,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         const setting = settings.find((s) => s.code === 'TempMax');
         const value = setting ? Number(setting.value) : DEFAULT_UMBRAL;
         if (!isNaN(value) && value > 0) {
-          umbralRef.current = value;
           setUmbralTemperatura(value);
         }
       })
@@ -270,6 +278,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
         cargandoCeldas,
         refreshCeldas,
         umbralTemperatura,
+        setUmbralTemperatura,
       }}
     >
       {children}

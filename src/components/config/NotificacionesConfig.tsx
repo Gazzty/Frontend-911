@@ -1,7 +1,8 @@
-import { Box, Text, VStack, HStack, Input, Button, Stack } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Input, Button, IconButton, Stack } from '@chakra-ui/react';
 import { createToaster } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { FaTimes, FaPlus } from 'react-icons/fa';
 
 const MotionBox = motion.create(Box);
 
@@ -9,6 +10,15 @@ const toaster = createToaster({
   placement: 'top',
   duration: 3000,
 });
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// El backend guarda las listas como un único string separado por ";".
+const splitList = (value: string): string[] =>
+  value
+    .split(';')
+    .map((v) => v.trim())
+    .filter(Boolean);
 
 interface NotificacionesConfigProps {
   email: boolean;
@@ -31,36 +41,69 @@ const NotificacionesConfig = ({
   onSave,
 }: NotificacionesConfigProps) => {
   const [email, setEmail] = useState(initialEmail);
-  const [emailDireccion, setEmailDireccion] = useState(initialEmailDir);
+  const [emails, setEmails] = useState<string[]>(splitList(initialEmailDir));
+  const [emailInput, setEmailInput] = useState('');
   const [sms, setSms] = useState(initialSms);
-  const [telefono, setTelefono] = useState(initialTelefono);
+  const [telefonos, setTelefonos] = useState<string[]>(splitList(initialTelefono));
+  const [telefonoInput, setTelefonoInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [telefonoError, setTelefonoError] = useState('');
 
-  const validateEmail = (value: string): boolean => {
-    if (!email) return true;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value.trim()) {
-      setEmailError('El email es requerido si las notificaciones por email están activadas');
-      return false;
-    }
-    if (!emailRegex.test(value)) {
+  const addEmail = () => {
+    const value = emailInput.trim();
+    if (!value) return;
+    if (!EMAIL_REGEX.test(value)) {
       setEmailError('Ingresa un email válido');
+      return;
+    }
+    if (emails.includes(value)) {
+      setEmailError('Ese email ya fue agregado');
+      return;
+    }
+    setEmails((prev) => [...prev, value]);
+    setEmailInput('');
+    setEmailError('');
+  };
+
+  const removeEmail = (value: string) => {
+    setEmails((prev) => prev.filter((e) => e !== value));
+  };
+
+  const addTelefono = () => {
+    const value = telefonoInput.trim();
+    if (!value) return;
+    if (value.length < 8) {
+      setTelefonoError('El número de teléfono debe tener al menos 8 dígitos');
+      return;
+    }
+    if (telefonos.includes(value)) {
+      setTelefonoError('Ese teléfono ya fue agregado');
+      return;
+    }
+    setTelefonos((prev) => [...prev, value]);
+    setTelefonoInput('');
+    setTelefonoError('');
+  };
+
+  const removeTelefono = (value: string) => {
+    setTelefonos((prev) => prev.filter((t) => t !== value));
+  };
+
+  const validateEmails = (): boolean => {
+    if (!email) return true;
+    if (emails.length === 0) {
+      setEmailError('Agrega al menos un email si las notificaciones por email están activadas');
       return false;
     }
     setEmailError('');
     return true;
   };
 
-  const validateTelefono = (value: string): boolean => {
+  const validateTelefonos = (): boolean => {
     if (!sms) return true;
-    if (!value.trim()) {
-      setTelefonoError('El teléfono es requerido si las notificaciones por SMS están activadas');
-      return false;
-    }
-    if (value.length < 8) {
-      setTelefonoError('El número de teléfono debe tener al menos 8 dígitos');
+    if (telefonos.length === 0) {
+      setTelefonoError('Agrega al menos un teléfono si las notificaciones por SMS están activadas');
       return false;
     }
     setTelefonoError('');
@@ -68,8 +111,8 @@ const NotificacionesConfig = ({
   };
 
   const handleSave = async () => {
-    const isEmailValid = validateEmail(emailDireccion);
-    const isTelefonoValid = validateTelefono(telefono);
+    const isEmailValid = validateEmails();
+    const isTelefonoValid = validateTelefonos();
 
     if (!isEmailValid || !isTelefonoValid) {
       toaster.create({
@@ -82,7 +125,12 @@ const NotificacionesConfig = ({
 
     setIsLoading(true);
     try {
-      await onSave({ email, emailDireccion, sms, telefono });
+      await onSave({
+        email,
+        emailDireccion: emails.join(';'),
+        sms,
+        telefono: telefonos.join(';'),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -90,9 +138,9 @@ const NotificacionesConfig = ({
 
   const hasChanges =
     email !== initialEmail ||
-    emailDireccion !== initialEmailDir ||
     sms !== initialSms ||
-    telefono !== initialTelefono;
+    emails.join(';') !== splitList(initialEmailDir).join(';') ||
+    telefonos.join(';') !== splitList(initialTelefono).join(';');
 
   return (
     <MotionBox
@@ -141,32 +189,68 @@ const NotificacionesConfig = ({
               </Box>
             </HStack>
             <Stack gap={1}>
-              <Text fontSize="xs" color="fg.muted">Dirección de email</Text>
-              <Input
-                type="email"
-                value={emailDireccion}
-                onChange={(e) => {
-                  setEmailDireccion(e.target.value);
-                  if (emailError) validateEmail(e.target.value);
-                }}
-                onBlur={() => validateEmail(emailDireccion)}
-                bg="bg.input"
-                borderWidth={emailError ? '2px' : '0'}
-                borderColor={emailError ? 'red.500' : 'transparent'}
-                size="sm"
-                disabled={!email}
-                _hover={{ bg: 'bg.muted' }}
-                _focus={{
-                  bg: 'bg.default',
-                  borderColor: emailError ? 'red.500' : 'brand.orange', 
-                  borderWidth: '2px' 
-                }}
-                placeholder="ejemplo@correo.com"
-              />
+              <Text fontSize="xs" color="fg.muted">Direcciones de email</Text>
+              <HStack>
+                <Input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addEmail();
+                    }
+                  }}
+                  bg="bg.input"
+                  borderWidth={emailError ? '2px' : '0'}
+                  borderColor={emailError ? 'red.500' : 'transparent'}
+                  size="sm"
+                  disabled={!email}
+                  _hover={{ bg: 'bg.muted' }}
+                  _focus={{
+                    bg: 'bg.default',
+                    borderColor: emailError ? 'red.500' : 'brand.orange',
+                    borderWidth: '2px'
+                  }}
+                  placeholder="ejemplo@correo.com"
+                />
+                <Button
+                  size="sm" bg="brand.black" color="white"
+                  onClick={addEmail}
+                  disabled={!email || !emailInput.trim()}
+                  _hover={{ bg: 'gray.700' }}
+                >
+                  <FaPlus />
+                </Button>
+              </HStack>
               {emailError && (
                 <Text fontSize="xs" color="red.500">
                   {emailError}
                 </Text>
+              )}
+              {emails.length > 0 && (
+                <VStack gap={1} align="stretch" mt={1}>
+                  {emails.map((value) => (
+                    <HStack
+                      key={value}
+                      bg="bg.muted" px={3} py={1.5} borderRadius="md"
+                      justify="space-between"
+                    >
+                      <Text fontSize="sm">{value}</Text>
+                      <IconButton
+                        aria-label="Quitar email" size="xs"
+                        variant="ghost" colorPalette="red"
+                        onClick={() => removeEmail(value)}
+                        disabled={!email}
+                      >
+                        <FaTimes size={10} />
+                      </IconButton>
+                    </HStack>
+                  ))}
+                </VStack>
               )}
             </Stack>
           </Box>
@@ -199,32 +283,68 @@ const NotificacionesConfig = ({
               </Box>
             </HStack>
             <Stack gap={1}>
-              <Text fontSize="xs" color="fg.muted">Número de teléfono</Text>
-              <Input
-                type="tel"
-                value={telefono}
-                onChange={(e) => {
-                  setTelefono(e.target.value);
-                  if (telefonoError) validateTelefono(e.target.value);
-                }}
-                onBlur={() => validateTelefono(telefono)}
-                bg="bg.input"
-                borderWidth={telefonoError ? '2px' : '0'}
-                borderColor={telefonoError ? 'red.500' : 'transparent'}
-                size="sm"
-                disabled={!sms}
-                _hover={{ bg: 'bg.muted' }}
-                _focus={{
-                  bg: 'bg.default',
-                  borderColor: telefonoError ? 'red.500' : 'brand.orange', 
-                  borderWidth: '2px' 
-                }}
-                placeholder="+54 9 11 1234-5678"
-              />
+              <Text fontSize="xs" color="fg.muted">Números de teléfono</Text>
+              <HStack>
+                <Input
+                  type="tel"
+                  value={telefonoInput}
+                  onChange={(e) => {
+                    setTelefonoInput(e.target.value);
+                    if (telefonoError) setTelefonoError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTelefono();
+                    }
+                  }}
+                  bg="bg.input"
+                  borderWidth={telefonoError ? '2px' : '0'}
+                  borderColor={telefonoError ? 'red.500' : 'transparent'}
+                  size="sm"
+                  disabled={!sms}
+                  _hover={{ bg: 'bg.muted' }}
+                  _focus={{
+                    bg: 'bg.default',
+                    borderColor: telefonoError ? 'red.500' : 'brand.orange',
+                    borderWidth: '2px'
+                  }}
+                  placeholder="+54 9 11 1234-5678"
+                />
+                <Button
+                  size="sm" bg="brand.black" color="white"
+                  onClick={addTelefono}
+                  disabled={!sms || !telefonoInput.trim()}
+                  _hover={{ bg: 'gray.700' }}
+                >
+                  <FaPlus />
+                </Button>
+              </HStack>
               {telefonoError && (
                 <Text fontSize="xs" color="red.500">
                   {telefonoError}
                 </Text>
+              )}
+              {telefonos.length > 0 && (
+                <VStack gap={1} align="stretch" mt={1}>
+                  {telefonos.map((value) => (
+                    <HStack
+                      key={value}
+                      bg="bg.muted" px={3} py={1.5} borderRadius="md"
+                      justify="space-between"
+                    >
+                      <Text fontSize="sm">{value}</Text>
+                      <IconButton
+                        aria-label="Quitar teléfono" size="xs"
+                        variant="ghost" colorPalette="red"
+                        onClick={() => removeTelefono(value)}
+                        disabled={!sms}
+                      >
+                        <FaTimes size={10} />
+                      </IconButton>
+                    </HStack>
+                  ))}
+                </VStack>
               )}
             </Stack>
           </Box>

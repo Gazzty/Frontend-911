@@ -16,7 +16,7 @@ import type { Sensor as ApiSensor } from '../api/sensorApi';
 import type { Config } from '../types';
 
 const ConfiguracionPage = () => {
-  const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas } = useSensorData();
+  const { intervaloMedicion, setIntervaloMedicion, celdas, refreshCeldas, setUmbralTemperatura } = useSensorData();
 
   const [sensoresDisponibles, setSensoresDisponibles] = useState<ApiSensor[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
@@ -59,9 +59,10 @@ const ConfiguracionPage = () => {
     try {
       await dataService.updateConfig(newConfig);
       setConfig(newConfig);
-      // Actualizar el intervalo en el context compartido
+      // Actualizar el intervalo y el umbral en el context compartido
       setIntervaloMedicion(intervalo);
-      
+      setUmbralTemperatura(temperatura);
+
       toaster.create({
         title: 'Guardado',
         description: 'Configuración de umbrales actualizada',
