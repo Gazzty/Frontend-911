@@ -60,6 +60,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
   const [editDescription, setEditDescription] = useState('');
   const [editLatitude, setEditLatitude] = useState('');
   const [editLongitude, setEditLongitude] = useState('');
+  const [editActive, setEditActive] = useState(true);
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [editFormSensors, setEditFormSensors] = useState<ApiSensor[]>([]);
   const [editSensorSelect, setEditSensorSelect] = useState('');
@@ -181,6 +182,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
     setEditDescription(celda.nombre);
     setEditLatitude(String(celda.ubicacion.lat));
     setEditLongitude(String(celda.ubicacion.lng));
+    setEditActive(celda.activa);
     setEditErrors({});
     const currentSensors = sensoresDisponibles.filter((s) => s.cellId === celda.id);
     setEditFormSensors(currentSensors);
@@ -225,7 +227,7 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
         description: editDescription.trim(),
         latitude: editLatitude,
         longitude: editLongitude,
-        active: editingCelda.activa,
+        active: editActive,
         sensors: editFormSensors.map((s) => ({
           id: s.id,
           active: s.active,
@@ -670,6 +672,26 @@ const CeldasConfig = ({ celdas, sensoresDisponibles, onDelete, onBulkDelete, onC
                     )}
                   </Stack>
                 </HStack>
+
+                {/* Estado */}
+                <Stack gap={1}>
+                  <Text fontSize="sm" fontWeight="600">Estado</Text>
+                  <HStack
+                    bg="bg.muted" px={3} py={2} borderRadius="md" justify="space-between"
+                    cursor="pointer" onClick={() => setEditActive((prev) => !prev)}
+                  >
+                    <Text fontSize="sm" color={editActive ? 'green.500' : 'fg.muted'} fontWeight="600">
+                      {editActive ? 'Activa' : 'Inactiva'}
+                    </Text>
+                    <input
+                      type="checkbox"
+                      checked={editActive}
+                      onChange={(e) => setEditActive(e.target.checked)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#1A202C' }}
+                    />
+                  </HStack>
+                </Stack>
 
                 {/* Sensores */}
                 <Stack gap={2}>

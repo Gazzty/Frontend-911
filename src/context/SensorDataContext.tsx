@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { websocketService, type ConnectionStatus } from '../services/websocketService';
-import type { Medicion, Celda } from '../types';
+import type { Medicion, Celda, SensorConnectionInfo } from '../types';
 import { getCellsFull, type Cell } from '../api/cellApi';
 import { getAllSettings } from '../api/settingsApi';
 import { toaster } from '../lib/toaster';
@@ -68,7 +68,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
   const celdasRef = useRef<Celda[]>([]);
   const bufferRef = useRef<Medicion[]>([]);
   const umbralRef = useRef(DEFAULT_UMBRAL);
-  const lastMedicionAtRef = useRef<Record<number, number>>({});
 
   // Cargar celdas y umbral desde la API REST al montar
   useEffect(() => {
@@ -86,10 +85,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     getCellsFull()
       .then((cells) => {
         const celdasDelApi = cells.map(cellToCelda);
-        const ahora = Date.now();
-        celdasDelApi.forEach((c) => {
-          lastMedicionAtRef.current[c.id] = ahora;
-        });
         celdasRef.current = celdasDelApi;
         setCeldas(celdasDelApi);
 
@@ -111,10 +106,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     try {
       const cells = await getCellsFull();
       const celdasDelApi = cells.map(cellToCelda);
-      const ahora = Date.now();
-      celdasDelApi.forEach((c) => {
-        lastMedicionAtRef.current[c.id] = ahora;
-      });
       celdasRef.current = celdasDelApi;
       setCeldas(celdasDelApi);
       procesarBuffer();
@@ -153,7 +144,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (celdaModificada) {
-        lastMedicionAtRef.current[celda.id] = Date.now();
         const tieneIdReal = celda.sensores.some((s) => s.id !== 0);
         const medicionesDelaCelda = tieneIdReal
           ? nuevasMediciones.filter((m) => celda.sensores.some((s) => s.id === m.sensorId))
@@ -172,7 +162,6 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
           ...celda,
           sensores: sensoresActualizados,
           timestamp,
-          activa: true,
         };
       }
 
@@ -195,31 +184,23 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     actualizarCeldas(buffer);
   }, [actualizarCeldas]);
 
-  // Marcar celdas como inactivas si no reciben datos en 3 ciclos de polling
-  useEffect(() => {
-    const TIMEOUT_MS = intervaloMedicion * 3 * 1000;
-
-    const interval = setInterval(() => {
-      const ahora = Date.now();
-      setCeldas((prev) => {
-        let cambio = false;
-        const actualizadas = prev.map((celda) => {
-          const ultima = lastMedicionAtRef.current[celda.id];
-          if (!ultima) return celda;
-          const debeEstarInactiva = ahora - ultima > TIMEOUT_MS;
-          if (debeEstarInactiva === celda.activa) {
-            cambio = true;
-            return { ...celda, activa: !debeEstarInactiva };
-          }
-          return celda;
-        });
-        if (cambio) celdasRef.current = actualizadas;
-        return cambio ? actualizadas : prev;
+  // Actualizar el estado activa/inactiva de una celda a partir de la info de conexión del WebSocket
+  const actualizarActivaPorConexion = useCallback((info: SensorConnectionInfo) => {
+    if (info.sensorId == null) return;
+    setCeldas((prev) => {
+      let cambio = false;
+      const actualizadas = prev.map((celda) => {
+        const tieneSensor = celda.sensores.some((s) => s.id === info.sensorId);
+        if (tieneSensor && celda.activa !== info.isConnected) {
+          cambio = true;
+          return { ...celda, activa: info.isConnected };
+        }
+        return celda;
       });
-    }, intervaloMedicion * 1000);
-
-    return () => clearInterval(interval);
-  }, [intervaloMedicion]);
+      if (cambio) celdasRef.current = actualizadas;
+      return cambio ? actualizadas : prev;
+    });
+  }, []);
 
   // Escuchar mensajes del WebSocket y procesar inmediatamente
   useEffect(() => {
@@ -241,6 +222,8 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const unsubConnectionInfo = websocketService.onSensorConnectionInfo((info) => {
+      actualizarActivaPorConexion(info);
+
       const sensorLabel = info.sensorId != null ? `Sensor ${info.sensorId}` : 'Sensor';
       const cellLabel = info.cellDescription ? ` — ${info.cellDescription}` : '';
       if (info.isConnected) {
@@ -266,7 +249,7 @@ export const SensorDataProvider = ({ children }: { children: ReactNode }) => {
       unsubConnectionInfo();
       websocketService.stop();
     };
-  }, [procesarBuffer]);
+  }, [procesarBuffer, actualizarActivaPorConexion]);
 
   return (
     <SensorDataContext.Provider
